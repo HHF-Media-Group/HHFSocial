@@ -91,7 +91,7 @@ class AuthWrapper extends StatelessWidget {
   Widget build(BuildContext context) {
     final firebaseUser = context.watch<User?>();
 
-    if (firebaseUser != null) {
+    if (firebaseUser != null && firebaseUser.emailVerified) {
       return const HomePage();
     }
     return const LoginPage();

@@ -40,7 +40,9 @@ class _SignUpPageState extends State<SignUpPage> {
               surface: const Color(0xFF333333),
               onSurface: Colors.white,
             ),
-            dialogBackgroundColor: const Color(0xFF1F1F1F),
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Color(0xFF1F1F1F),
+            ),
           ),
           child: child!,
         );
@@ -82,14 +84,24 @@ class _SignUpPageState extends State<SignUpPage> {
         final authService = context.read<AuthService>();
         final databaseService = DatabaseService();
 
-        // 1. Create User in Auth
+        // 1. Check Username Uniqueness
+        final isTaken = await databaseService.isUsernameTaken(_usernameController.text.trim());
+        if (isTaken) {
+          setState(() {
+            _errorMessage = "Username is already taken. Please choose another.";
+            _isLoading = false;
+          });
+          return;
+        }
+
+        // 2. Create User in Auth
         final userCredential = await authService.signUpWithEmailAndPassword(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
 
         if (userCredential != null && userCredential.user != null) {
-          // 2. Create User Model
+          // 3. Create User Model
           final newUser = UserModel(
             uid: userCredential.user!.uid,
             email: _emailController.text.trim(),
@@ -99,12 +111,44 @@ class _SignUpPageState extends State<SignUpPage> {
             createdAt: DateTime.now(),
           );
 
-          // 3. Save to Firestore
-          await databaseService.saveUser(newUser);
+          // 4. Save to Firestore (with Rollback)
+          try {
+            await databaseService.saveUser(newUser);
+          } catch (e) {
+            // Rollback: Delete the Auth user if Firestore save fails
+            await authService.deleteUser();
+            throw Exception("Failed to save user profile. Please try again.");
+          }
 
-          // 4. Pop back to Login (AuthWrapper will handle navigation to Home)
+          // 5. Send Verification Email
+          await authService.sendEmailVerification();
+
+          // 6. Sign Out to prevent auto-login
+          await authService.signOut();
+
           if (mounted) {
-            Navigator.pop(context); 
+            // 7. Show Dialog and Navigate
+            await showDialog(
+              context: context,
+              barrierDismissible: false,
+              builder: (context) => AlertDialog(
+                backgroundColor: const Color(0xFF333333),
+                title: const Text('Verify Your Email', style: TextStyle(color: Colors.white)),
+                content: const Text(
+                  'Account created successfully! Please check your email to verify your account before logging in.',
+                  style: TextStyle(color: Color(0xFFE0E0E0)),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context); // Close dialog
+                      Navigator.pop(context); // Go back to Login
+                    },
+                    child: const Text('OK', style: TextStyle(color: Color(0xFFF29F05))),
+                  ),
+                ],
+              ),
+            );
           }
         }
       } catch (e) {

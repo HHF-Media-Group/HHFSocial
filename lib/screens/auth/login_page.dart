@@ -27,11 +27,20 @@ class _LoginPageState extends State<LoginPage> {
       });
 
       try {
-        await context.read<AuthService>().signInWithEmailAndPassword(
+        final authService = context.read<AuthService>();
+        await authService.signInWithEmailAndPassword(
               _emailController.text.trim(),
               _passwordController.text.trim(),
             );
-        // Navigation is handled by AuthWrapper
+        
+        // Check Email Verification
+        if (authService.currentUser != null && !authService.currentUser!.emailVerified) {
+          await authService.signOut();
+          setState(() {
+            _errorMessage = "Please verify your email address to log in.";
+          });
+        }
+        // Else: Navigation is handled by AuthWrapper
       } catch (e) {
         setState(() {
           _errorMessage = AuthExceptionHandler.generateErrorMessage(e);
@@ -44,6 +53,94 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     }
+  }
+
+  Future<void> _showForgotPasswordDialog(BuildContext parentContext) async {
+    final TextEditingController resetEmailController = TextEditingController();
+    final authService = parentContext.read<AuthService>();
+
+    return showDialog(
+      context: parentContext,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF333333),
+          title: const Text('Reset Password', style: TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Enter your email address to receive a password reset link.',
+                style: TextStyle(color: Color(0xFFE0E0E0)),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: resetEmailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email Address',
+                  prefixIcon: Icon(Icons.email_outlined),
+                ),
+                keyboardType: TextInputType.emailAddress,
+                style: const TextStyle(color: Colors.white),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+            ),
+            TextButton(
+              onPressed: () async {
+                final email = resetEmailController.text.trim();
+                if (email.isEmpty) {
+                  ScaffoldMessenger.of(dialogContext).showSnackBar(
+                    const SnackBar(content: Text('Please enter your email')),
+                  );
+                  return;
+                }
+
+                try {
+                  Navigator.pop(dialogContext); // Close input dialog
+                  await authService.sendPasswordResetEmail(email);
+                  
+                  if (parentContext.mounted) {
+                    await showDialog(
+                      context: parentContext, // Use parent context for success dialog
+                      builder: (context) => AlertDialog(
+                        backgroundColor: const Color(0xFF333333),
+                        icon: const Icon(Icons.mark_email_read, size: 48, color: Color(0xFFF29F05)),
+                        title: const Text('Check Your Email', style: TextStyle(color: Colors.white)),
+                        content: Text(
+                          'We have sent a password reset link to $email.\n\nPlease check your inbox and spam folder.',
+                          style: const TextStyle(color: Color(0xFFE0E0E0)),
+                          textAlign: TextAlign.center,
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('OK', style: TextStyle(color: Color(0xFFF29F05))),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (parentContext.mounted) {
+                    ScaffoldMessenger.of(parentContext).showSnackBar(
+                      SnackBar(
+                        content: Text(AuthExceptionHandler.generateErrorMessage(e)),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Send Link', style: TextStyle(color: Color(0xFFF29F05))),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -134,7 +231,7 @@ class _LoginPageState extends State<LoginPage> {
                 // Forgot Password
                 TextButton(
                   onPressed: () {
-                    // TODO: Implement Forgot Password
+                    _showForgotPasswordDialog(context);
                   },
                   child: Text(
                     'Forgot Password?',
@@ -152,7 +249,14 @@ class _LoginPageState extends State<LoginPage> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const SignUpPage()),
-                        );
+                        ).then((_) {
+                          // Clear fields when returning from Sign Up
+                          _emailController.clear();
+                          _passwordController.clear();
+                          setState(() {
+                            _errorMessage = null;
+                          });
+                        });
                       },
                       child: Text(
                         'Sign Up',
