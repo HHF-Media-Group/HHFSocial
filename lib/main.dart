@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_page.dart';
+import 'screens/profile/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -113,8 +114,21 @@ class _HomePageState extends State<HomePage> {
         title: const Text('HHF Social'),
         backgroundColor: Theme.of(context).colorScheme.surface,
         actions: [
+          // Profile Button
+          IconButton(
+            icon: const Icon(Icons.person_outline),
+            tooltip: 'Profile',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ProfilePage()),
+              );
+            },
+          ),
+          // Logout Button
           IconButton(
             icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
             onPressed: () {
               context.read<AuthService>().signOut();
             },
@@ -135,3 +149,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+

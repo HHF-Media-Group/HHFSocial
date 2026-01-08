@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users collection - only owner can read/write their document
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Usernames collection - for username uniqueness checks
+    match /usernames/{username} {
+      // Anyone can check if a username exists (for signup form validation)
+      allow get: if true;
+      
+      // Only the owner (uid in doc must match auth uid) can create their username
+      allow create: if request.auth != null 
+                    && request.resource.data.uid == request.auth.uid;
+      
+      // Only the owner can delete their username
+      allow delete: if request.auth != null 
+                    && resource.data.uid == request.auth.uid;
+      
+      // No updates allowed - usernames are immutable
+      allow update: if false;
+    }
+  }
+}

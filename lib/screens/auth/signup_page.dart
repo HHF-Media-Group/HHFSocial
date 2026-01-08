@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/user_model.dart';
+import '../../utils/validators.dart';
 
 import '../../utils/auth_exception_handler.dart';
 
@@ -20,9 +21,12 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController = TextEditingController();
   final TextEditingController _birthDateController = TextEditingController();
   DateTime? _selectedDate;
   bool _isLoading = false;
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   String? _errorMessage;
 
   Future<void> _selectDate(BuildContext context) async {
@@ -83,9 +87,12 @@ class _SignUpPageState extends State<SignUpPage> {
       try {
         final authService = context.read<AuthService>();
         final databaseService = DatabaseService();
+        final username = _usernameController.text.trim().toLowerCase();
 
-        // 1. Check Username Uniqueness
-        final isTaken = await databaseService.isUsernameTaken(_usernameController.text.trim());
+        print('DEBUG SIGNUP: Step 1 - Checking username availability');
+        // 1. Check if username is available (public read - no auth needed)
+        final isTaken = await databaseService.isUsernameTaken(username);
+        print('DEBUG SIGNUP: Username taken: $isTaken');
         if (isTaken) {
           setState(() {
             _errorMessage = "Username is already taken. Please choose another.";
@@ -94,32 +101,52 @@ class _SignUpPageState extends State<SignUpPage> {
           return;
         }
 
+        print('DEBUG SIGNUP: Step 2 - Creating Auth user');
         // 2. Create User in Auth
         final userCredential = await authService.signUpWithEmailAndPassword(
           _emailController.text.trim(),
           _passwordController.text.trim(),
         );
+        print('DEBUG SIGNUP: Auth user created: ${userCredential?.user?.uid}');
 
         if (userCredential != null && userCredential.user != null) {
-          // 3. Create User Model
+          final uid = userCredential.user!.uid;
+
+          print('DEBUG SIGNUP: Step 3 - Reserving username');
+          // 3. Reserve the username (now authenticated, can write)
+          try {
+            await databaseService.reserveUsername(username, uid);
+            print('DEBUG SIGNUP: Username reserved');
+          } catch (e) {
+            print('DEBUG SIGNUP: Username reservation failed: $e');
+            await authService.deleteUser();
+            throw Exception("Failed to reserve username. Please try again.");
+          }
+
+          // 4. Create User Model
           final newUser = UserModel(
-            uid: userCredential.user!.uid,
+            uid: uid,
             email: _emailController.text.trim(),
-            username: _usernameController.text.trim(),
+            username: username,
             fullName: _fullNameController.text.trim(),
             birthDate: _selectedDate!,
             createdAt: DateTime.now(),
           );
 
-          // 4. Save to Firestore (with Rollback)
+          print('DEBUG SIGNUP: Step 4 - Saving to Firestore');
+          // 5. Save to Firestore (with Rollback)
           try {
             await databaseService.saveUser(newUser);
+            print('DEBUG SIGNUP: User saved to Firestore');
           } catch (e) {
-            // Rollback: Delete the Auth user if Firestore save fails
+            print('DEBUG SIGNUP: Firestore save failed: $e');
+            // Rollback: Delete username and auth user
+            await databaseService.releaseUsername(username);
             await authService.deleteUser();
             throw Exception("Failed to save user profile. Please try again.");
           }
 
+          print('DEBUG SIGNUP: Step 4 - Sending verification email');
           // 5. Send Verification Email
           await authService.sendEmailVerification();
 
@@ -152,6 +179,7 @@ class _SignUpPageState extends State<SignUpPage> {
           }
         }
       } catch (e) {
+        print('DEBUG SIGNUP: Error caught: $e');
         setState(() {
           _errorMessage = AuthExceptionHandler.generateErrorMessage(e);
         });
@@ -206,8 +234,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     labelText: 'Full Name',
                     prefixIcon: Icon(Icons.person_outline),
                   ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter your full name' : null,
+                  textCapitalization: TextCapitalization.words,
+                  validator: Validators.validateFullName,
                 ),
                 const SizedBox(height: 16),
 
@@ -217,9 +245,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   decoration: const InputDecoration(
                     labelText: 'Username',
                     prefixIcon: Icon(Icons.alternate_email),
+                    hintText: 'letters, numbers, underscores',
                   ),
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter a username' : null,
+                  validator: Validators.validateUsername,
                 ),
                 const SizedBox(height: 16),
 
@@ -231,22 +259,64 @@ class _SignUpPageState extends State<SignUpPage> {
                     prefixIcon: Icon(Icons.email_outlined),
                   ),
                   keyboardType: TextInputType.emailAddress,
-                  validator: (value) =>
-                      value!.isEmpty ? 'Please enter your email' : null,
+                  autocorrect: false,
+                  validator: Validators.validateEmail,
                 ),
                 const SizedBox(height: 16),
 
                 // Password
                 TextFormField(
                   controller: _passwordController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     labelText: 'Password',
-                    prefixIcon: Icon(Icons.lock_outlined),
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
-                  obscureText: true,
+                  obscureText: _obscurePassword,
                   validator: (value) => value!.length < 6
                       ? 'Password must be at least 6 characters'
                       : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Confirm Password
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Password',
+                    prefixIcon: const Icon(Icons.lock_outlined),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,
+                        color: Colors.grey,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                        });
+                      },
+                    ),
+                  ),
+                  obscureText: _obscureConfirmPassword,
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Please confirm your password';
+                    }
+                    if (value != _passwordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 16),
 
