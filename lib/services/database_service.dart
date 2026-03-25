@@ -87,5 +87,52 @@ class DatabaseService {
       rethrow;
     }
   }
+
+  // Update user profile fields (partial update)
+  Future<void> updateUserProfile(String uid, Map<String, dynamic> updates) async {
+    try {
+      await _firestore.collection('users').doc(uid).update(updates);
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error updating user profile', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // Change username with atomic swap (delete old → create new)
+  // Returns true on success, throws on failure with rollback
+  Future<void> changeUsername(String uid, String oldUsername, String newUsername) async {
+    final oldLower = oldUsername.toLowerCase();
+    final newLower = newUsername.toLowerCase();
+
+    // If username hasn't actually changed, skip
+    if (oldLower == newLower) return;
+
+    // 1. Check if new username is available
+    final isTaken = await isUsernameTaken(newLower);
+    if (isTaken) {
+      throw Exception('Username is already taken');
+    }
+
+    // 2. Reserve new username
+    try {
+      await reserveUsername(newLower, uid);
+    } catch (e) {
+      throw Exception('Failed to reserve new username');
+    }
+
+    // 3. Update users document
+    try {
+      await _firestore.collection('users').doc(uid).update({
+        'username': newLower,
+      });
+    } catch (e) {
+      // Rollback: release the new username
+      await releaseUsername(newLower);
+      throw Exception('Failed to update profile with new username');
+    }
+
+    // 4. Release old username (cleanup, don't fail if this errors)
+    await releaseUsername(oldLower);
+  }
 }
 

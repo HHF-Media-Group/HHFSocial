@@ -8,6 +8,8 @@ class UserModel {
   final DateTime birthDate;
   final DateTime createdAt;
   final String? profilePictureUrl;
+  final String? bio;
+  final String? website;
 
   UserModel({
     required this.uid,
@@ -17,6 +19,8 @@ class UserModel {
     required this.birthDate,
     required this.createdAt,
     this.profilePictureUrl,
+    this.bio,
+    this.website,
   });
 
   Map<String, dynamic> toMap() {
@@ -28,6 +32,8 @@ class UserModel {
       'birthDate': Timestamp.fromDate(birthDate),
       'createdAt': Timestamp.fromDate(createdAt),
       'profilePictureUrl': profilePictureUrl,
+      'bio': bio,
+      'website': website,
     };
   }
 
@@ -53,6 +59,8 @@ class UserModel {
       birthDate: parseBirthDate(),
       createdAt: parseCreatedAt(),
       profilePictureUrl: map['profilePictureUrl'],
+      bio: map['bio'],
+      website: map['website'],
     );
   }
 
@@ -66,7 +74,11 @@ class UserModel {
     DateTime? birthDate,
     DateTime? createdAt,
     String? profilePictureUrl,
+    String? bio,
+    String? website,
     bool clearProfilePicture = false,
+    bool clearBio = false,
+    bool clearWebsite = false,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -76,7 +88,10 @@ class UserModel {
       birthDate: birthDate ?? this.birthDate,
       createdAt: createdAt ?? this.createdAt,
       profilePictureUrl: clearProfilePicture ? null : (profilePictureUrl ?? this.profilePictureUrl),
+      bio: clearBio ? null : (bio ?? this.bio),
+      website: clearWebsite ? null : (website ?? this.website),
     );
   }
 }
+
 

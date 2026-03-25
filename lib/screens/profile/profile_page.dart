@@ -6,6 +6,7 @@ import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../services/storage_service.dart';
+import 'edit_profile_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -329,7 +330,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ],
                       ),
                     ),
-                    // Name and Bio
+                    // Name, Bio and Website
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Column(
@@ -351,6 +352,32 @@ class _ProfilePageState extends State<ProfilePage> {
                               fontSize: 14,
                             ),
                           ),
+                          if (_user?.bio != null && _user!.bio!.isNotEmpty) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              _user!.bio!,
+                              style: const TextStyle(
+                                color: Color(0xFFE0E0E0),
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                          if (_user?.website != null && _user!.website!.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                const Icon(Icons.link, color: Color(0xFFF29F05), size: 14),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _user!.website!,
+                                  style: const TextStyle(
+                                    color: Color(0xFFF29F05),
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -361,8 +388,19 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: SizedBox(
                         width: double.infinity,
                         child: OutlinedButton(
-                          onPressed: () {
-                            // TODO: Edit Profile Page
+                          onPressed: () async {
+                            if (_user == null) return;
+                            final updatedUser = await Navigator.push<UserModel>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EditProfilePage(user: _user!),
+                              ),
+                            );
+                            if (updatedUser != null && mounted) {
+                              setState(() {
+                                _user = updatedUser;
+                              });
+                            }
                           },
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: Color(0xFF444444)),

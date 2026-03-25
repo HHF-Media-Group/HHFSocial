@@ -129,4 +129,38 @@ class Validators {
     
     return null;
   }
+
+  /// Validates bio (optional, max 150 characters)
+  static String? validateBio(String? value) {
+    if (value == null || value.isEmpty) {
+      return null; // Bio is optional
+    }
+    
+    if (value.length > 150) {
+      return 'Bio must be 150 characters or less';
+    }
+    
+    return null;
+  }
+
+  /// Validates website URL (optional, must be valid URL if provided)
+  static String? validateWebsite(String? value) {
+    if (value == null || value.isEmpty) {
+      return null; // Website is optional
+    }
+    
+    final trimmed = value.trim();
+    
+    // Basic URL pattern check
+    final urlRegex = RegExp(
+      r'^(https?:\/\/)?([\w\-]+\.)+[\w\-]+(\/[\w\-._~:\/?#\[\]@!$&()*+,;=]*)?$',
+      caseSensitive: false,
+    );
+    
+    if (!urlRegex.hasMatch(trimmed)) {
+      return 'Please enter a valid URL';
+    }
+    
+    return null;
+  }
 }
