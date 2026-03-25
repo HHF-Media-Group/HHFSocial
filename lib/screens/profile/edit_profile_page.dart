@@ -388,6 +388,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     validator: Validators.validateBio,
                     maxLines: 3,
                     maxLength: 150,
+                    hintText: 'Tell the world about yourself ✨',
                   ),
                   const SizedBox(height: 20),
 
