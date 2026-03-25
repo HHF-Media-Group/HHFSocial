@@ -64,12 +64,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
     });
 
     try {
-      // Generate a unique post ID
-      final postId = DateTime.now().millisecondsSinceEpoch.toString();
+      // 1. Generate Firestore doc ID first so Storage and Firestore use the SAME postId
+      final postId = PostService().generatePostId();
 
       setState(() => _uploadProgress = 0.4);
 
-      // 1. Upload image to Storage
+      // 2. Upload image to Storage using the Firestore postId
       final imageUrl = await _storageService.uploadPostImage(
         widget.uid,
         _selectedImage!,
@@ -82,9 +82,10 @@ class _CreatePostPageState extends State<CreatePostPage> {
         throw Exception('Failed to upload image');
       }
 
-      // 2. Create post in Firestore
+      // 3. Create post in Firestore with the same postId
       final caption = _captionController.text.trim();
-      final post = await _postService.createPost(
+      final post = await _postService.createPostWithId(
+        postId: postId,
         uid: widget.uid,
         imageUrl: imageUrl,
         caption: caption.isNotEmpty ? caption : null,

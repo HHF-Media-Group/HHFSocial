@@ -36,6 +36,43 @@ class PostService {
     }
   }
 
+  // Generate a Firestore document ID (for coordinating Storage + Firestore)
+  String generatePostId() {
+    return _firestore.collection('posts').doc().id;
+  }
+
+  // Create a post with a specific postId (used when Storage upload happens first)
+  Future<PostModel> createPostWithId({
+    required String postId,
+    required String uid,
+    required String imageUrl,
+    String? caption,
+  }) async {
+    try {
+      final docRef = _firestore.collection('posts').doc(postId);
+      final post = PostModel(
+        postId: postId,
+        uid: uid,
+        imageUrl: imageUrl,
+        caption: caption,
+        createdAt: DateTime.now(),
+        likesCount: 0,
+      );
+
+      await docRef.set(post.toMap());
+
+      // Increment post count on user doc
+      await _firestore.collection('users').doc(uid).update({
+        'postsCount': FieldValue.increment(1),
+      });
+
+      return post;
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error creating post with ID', e, stackTrace);
+      rethrow;
+    }
+  }
+
   // Get user's posts (paginated, newest first)
   Future<List<PostModel>> getUserPosts(String uid, {int limit = 18, DocumentSnapshot? lastDoc}) async {
     try {
