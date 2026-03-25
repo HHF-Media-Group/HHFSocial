@@ -8,6 +8,7 @@ import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/profile/profile_page.dart';
+import 'screens/post/create_post_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -107,27 +108,100 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  int _currentIndex = 0;
+
+  final List<Widget> _pages = [
+    const _FeedPage(),
+    const SizedBox.shrink(), // Placeholder for Create (handled via navigation)
+    const ProfilePage(),
+  ];
+
+  void _onTabTapped(int index) {
+    if (index == 1) {
+      // Create Post - navigate to create page instead of switching tab
+      final authService = context.read<AuthService>();
+      final uid = authService.currentUser?.uid;
+      if (uid != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreatePostPage(uid: uid),
+          ),
+        );
+      }
+      return;
+    }
+    setState(() {
+      _currentIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('HHF Social'),
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        actions: [
-          // Profile Button
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Profile',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProfilePage()),
-              );
-            },
+      body: IndexedStack(
+        index: _currentIndex,
+        children: _pages,
+      ),
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          border: Border(
+            top: BorderSide(color: Color(0xFF333333), width: 0.5),
           ),
-          // Logout Button
+        ),
+        child: BottomNavigationBar(
+          currentIndex: _currentIndex,
+          onTap: _onTabTapped,
+          backgroundColor: const Color(0xFF1F1F1F),
+          selectedItemColor: const Color(0xFFF29F05),
+          unselectedItemColor: Colors.grey,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
+          type: BottomNavigationBarType.fixed,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined, size: 28),
+              activeIcon: Icon(Icons.home, size: 28),
+              label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_box_outlined, size: 28),
+              activeIcon: Icon(Icons.add_box, size: 28),
+              label: 'Create',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person_outline, size: 28),
+              activeIcon: Icon(Icons.person, size: 28),
+              label: 'Profile',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Temporary Feed Page (will be replaced with real feed later)
+class _FeedPage extends StatelessWidget {
+  const _FeedPage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF1F1F1F),
+      appBar: AppBar(
+        title: const Text(
+          'HHF Social',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Color(0xFFF29F05),
+          ),
+        ),
+        backgroundColor: const Color(0xFF1F1F1F),
+        elevation: 0,
+        actions: [
           IconButton(
-            icon: const Icon(Icons.logout),
+            icon: const Icon(Icons.logout, color: Colors.grey),
             tooltip: 'Logout',
             onPressed: () {
               context.read<AuthService>().signOut();
@@ -135,13 +209,25 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Center(
+      body: const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const <Widget>[
+          children: [
+            Icon(Icons.photo_camera_outlined, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
             Text(
-              'Welcome to HHF Social!',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              'No posts yet',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Follow people to see their photos\nand videos here.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey, fontSize: 14),
             ),
           ],
         ),

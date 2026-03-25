@@ -3,9 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
+import '../../models/post_model.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/post_service.dart';
+import '../post/create_post_page.dart';
+import '../post/post_detail_page.dart';
 import 'edit_profile_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -17,10 +21,12 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   UserModel? _user;
+  List<PostModel> _posts = [];
   bool _isLoading = true;
   bool _isUploadingImage = false;
   final DatabaseService _databaseService = DatabaseService();
   final StorageService _storageService = StorageService();
+  final PostService _postService = PostService();
   final ImagePicker _imagePicker = ImagePicker();
 
   @override
@@ -35,9 +41,11 @@ class _ProfilePageState extends State<ProfilePage> {
     
     if (uid != null) {
       final user = await _databaseService.getUser(uid);
+      final posts = await _postService.getUserPosts(uid);
       if (mounted) {
         setState(() {
           _user = user;
+          _posts = posts;
           _isLoading = false;
         });
       }
@@ -47,6 +55,40 @@ class _ProfilePageState extends State<ProfilePage> {
           _isLoading = false;
         });
       }
+    }
+  }
+
+  Future<void> _navigateToCreatePost() async {
+    if (_user == null) return;
+    final newPost = await Navigator.push<PostModel>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CreatePostPage(uid: _user!.uid),
+      ),
+    );
+    if (newPost != null && mounted) {
+      setState(() {
+        _posts.insert(0, newPost);
+      });
+    }
+  }
+
+  Future<void> _navigateToPostDetail(PostModel post) async {
+    final deleted = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PostDetailPage(
+          post: post,
+          currentUid: _user!.uid,
+          username: _user!.username,
+          profilePictureUrl: _user!.profilePictureUrl,
+        ),
+      ),
+    );
+    if (deleted == true && mounted) {
+      setState(() {
+        _posts.removeWhere((p) => p.postId == post.postId);
+      });
     }
   }
 
@@ -321,7 +363,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
-                                _buildStatColumn('0', 'Posts'),
+                                _buildStatColumn('${_posts.length}', 'Posts'),
                                 _buildStatColumn('0', 'Followers'),
                                 _buildStatColumn('0', 'Following'),
                               ],
@@ -435,57 +477,93 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ),
                     ),
-                    // Empty State / Photo Grid
-                    const SizedBox(height: 80),
-                    Center(
-                      child: Column(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+                    // Empty State or Photo Grid
+                    if (_posts.isEmpty) ...[
+                      const SizedBox(height: 80),
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(20),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white, width: 2),
+                              ),
+                              child: const Icon(
+                                Icons.camera_alt_outlined,
+                                size: 48,
+                                color: Colors.white,
+                              ),
                             ),
-                            child: const Icon(
-                              Icons.camera_alt_outlined,
-                              size: 48,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          const Text(
-                            'Share Photos',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'When you share photos, they will\nappear on your profile.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          TextButton(
-                            onPressed: () {
-                              // TODO: Share first photo
-                            },
-                            child: const Text(
-                              'Share your first photo',
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Share Photos',
                               style: TextStyle(
-                                color: Color(0xFFF29F05),
+                                color: Colors.white,
+                                fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            const Text(
+                              'When you share photos, they will\nappear on your profile.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: () => _navigateToCreatePost(),
+                              child: const Text(
+                                'Share your first photo',
+                                style: TextStyle(
+                                  color: Color(0xFFF29F05),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                    ] else
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 2,
+                          mainAxisSpacing: 2,
+                        ),
+                        itemCount: _posts.length,
+                        itemBuilder: (context, index) {
+                          final post = _posts[index];
+                          return GestureDetector(
+                            onTap: () => _navigateToPostDetail(post),
+                            child: Image.network(
+                              post.imageUrl,
+                              fit: BoxFit.cover,
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(
+                                  color: const Color(0xFF333333),
+                                  child: const Center(
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Color(0xFFF29F05),
+                                    ),
+                                  ),
+                                );
+                              },
+                              errorBuilder: (_, __, ___) => Container(
+                                color: const Color(0xFF333333),
+                                child: const Icon(Icons.broken_image, color: Colors.grey),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
                     const SizedBox(height: 40),
                   ],
                 ),

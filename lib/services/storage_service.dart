@@ -54,6 +54,16 @@ class StorageService {
     }
   }
 
+  // Delete Post Image (Robust method using UID and postId)
+  Future<void> deletePostImage(String uid, String postId) async {
+    try {
+      final ref = _storage.ref().child('posts').child(uid).child('$postId.jpg');
+      await ref.delete();
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error deleting post image', e, stackTrace);
+    }
+  }
+
   // Delete Image (Generic URL based - kept for other uses if needed)
   Future<void> deleteImage(String url) async {
     try {

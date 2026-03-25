@@ -22,5 +22,22 @@ service cloud.firestore {
       // No updates allowed - usernames are immutable
       allow update: if false;
     }
+    
+    // Posts collection
+    match /posts/{postId} {
+      // Any authenticated user can read posts
+      allow read: if request.auth != null;
+      
+      // Only the owner can create their post
+      allow create: if request.auth != null 
+                    && request.resource.data.uid == request.auth.uid;
+      
+      // Only the owner can delete their post
+      allow delete: if request.auth != null 
+                    && resource.data.uid == request.auth.uid;
+      
+      // No updates for now
+      allow update: if false;
+    }
   }
 }
