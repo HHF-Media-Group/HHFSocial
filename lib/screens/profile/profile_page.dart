@@ -16,10 +16,10 @@ class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
   @override
-  State<ProfilePage> createState() => _ProfilePageState();
+  ProfilePageState createState() => ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class ProfilePageState extends State<ProfilePage> {
   UserModel? _user;
   List<PostModel> _posts = [];
   bool _isLoading = true;
@@ -56,6 +56,13 @@ class _ProfilePageState extends State<ProfilePage> {
         });
       }
     }
+  }
+
+  // Public method to add a post from external sources (e.g., bottom nav "+" tab)
+  void addPost(PostModel post) {
+    setState(() {
+      _posts.insert(0, post);
+    });
   }
 
   Future<void> _navigateToCreatePost() async {

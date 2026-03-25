@@ -9,6 +9,7 @@ import 'services/auth_service.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/post/create_post_page.dart';
+import 'models/post_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -109,12 +110,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
+  final GlobalKey<ProfilePageState> _profileKey = GlobalKey<ProfilePageState>();
 
-  final List<Widget> _pages = [
-    const _FeedPage(),
-    const SizedBox.shrink(), // Placeholder for Create (handled via navigation)
-    const ProfilePage(),
-  ];
+  late final List<Widget> _pages;
+
+  @override
+  void initState() {
+    super.initState();
+    _pages = [
+      const _FeedPage(),
+      const SizedBox.shrink(),
+      ProfilePage(key: _profileKey),
+    ];
+  }
 
   void _onTabTapped(int index) {
     if (index == 1) {
@@ -122,12 +130,17 @@ class _HomePageState extends State<HomePage> {
       final authService = context.read<AuthService>();
       final uid = authService.currentUser?.uid;
       if (uid != null) {
-        Navigator.push(
+        Navigator.push<PostModel>(
           context,
           MaterialPageRoute(
             builder: (context) => CreatePostPage(uid: uid),
           ),
-        );
+        ).then((newPost) {
+          if (newPost != null) {
+            // Refresh the profile grid instantly
+            _profileKey.currentState?.addPost(newPost);
+          }
+        });
       }
       return;
     }
