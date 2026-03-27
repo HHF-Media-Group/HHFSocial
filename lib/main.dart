@@ -11,7 +11,9 @@ import 'screens/profile/profile_page.dart';
 import 'screens/post/create_post_page.dart';
 import 'screens/search/search_page.dart';
 import 'screens/feed/feed_page.dart';
+import 'screens/notifications/notifications_page.dart';
 import 'models/post_model.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -114,6 +116,8 @@ class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey<ProfilePageState>();
   final GlobalKey<FeedPageState> _feedKey = GlobalKey<FeedPageState>();
+  final GlobalKey<NotificationsPageState> _notifKey = GlobalKey<NotificationsPageState>();
+  int _unreadCount = 0;
 
   late final List<Widget> _pages;
 
@@ -123,14 +127,24 @@ class _HomePageState extends State<HomePage> {
     _pages = [
       FeedPage(key: _feedKey),
       const SearchPage(),
-      const SizedBox.shrink(),
+      const SizedBox.shrink(), // Create placeholder
+      NotificationsPage(key: _notifKey),
       ProfilePage(key: _profileKey),
     ];
+    _refreshUnreadCount();
+  }
+
+  void _refreshUnreadCount() async {
+    final authService = context.read<AuthService>();
+    final uid = authService.currentUser?.uid;
+    if (uid == null) return;
+    final count = await NotificationService().getUnreadCount(uid);
+    if (mounted) setState(() => _unreadCount = count);
   }
 
   void _onTabTapped(int index) {
     if (index == 2) {
-      // Create Post - navigate to create page instead of switching tab
+      // Create Post
       final authService = context.read<AuthService>();
       final uid = authService.currentUser?.uid;
       if (uid != null) {
@@ -141,7 +155,6 @@ class _HomePageState extends State<HomePage> {
           ),
         ).then((newPost) {
           if (newPost != null) {
-            // Refresh the profile grid and feed instantly
             _profileKey.currentState?.addPost(newPost);
             _feedKey.currentState?.reload();
           }
@@ -154,8 +167,15 @@ class _HomePageState extends State<HomePage> {
     if (index == 0) {
       _feedKey.currentState?.reload();
     } else if (index == 3) {
+      _notifKey.currentState?.reload();
+      // Clear badge when viewing notifications
+      setState(() => _unreadCount = 0);
+    } else if (index == 4) {
       _profileKey.currentState?.reload();
     }
+
+    // Refresh unread count on every tab switch
+    if (index != 3) _refreshUnreadCount();
 
     setState(() {
       _currentIndex = index;
@@ -184,23 +204,53 @@ class _HomePageState extends State<HomePage> {
           showSelectedLabels: false,
           showUnselectedLabels: false,
           type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
+          items: [
+            const BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined, size: 28),
               activeIcon: Icon(Icons.home, size: 28),
               label: 'Home',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.search, size: 28),
               activeIcon: Icon(Icons.search, size: 28),
               label: 'Search',
             ),
-            BottomNavigationBarItem(
+            const BottomNavigationBarItem(
               icon: Icon(Icons.add_box_outlined, size: 28),
               activeIcon: Icon(Icons.add_box, size: 28),
               label: 'Create',
             ),
             BottomNavigationBarItem(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.favorite_border, size: 28),
+                  if (_unreadCount > 0)
+                    Positioned(
+                      right: -6,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF29F05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          _unreadCount > 9 ? '9+' : '$_unreadCount',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              activeIcon: const Icon(Icons.favorite, size: 28),
+              label: 'Notifications',
+            ),
+            const BottomNavigationBarItem(
               icon: Icon(Icons.person_outline, size: 28),
               activeIcon: Icon(Icons.person, size: 28),
               label: 'Profile',

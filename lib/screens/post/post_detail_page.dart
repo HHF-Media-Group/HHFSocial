@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -114,6 +115,119 @@ class _PostDetailPageState extends State<PostDetailPage> {
     );
 
     if (confirmed == true && context.mounted) {
+      // Show premium loading overlay
+      showGeneralDialog(
+        context: context,
+        barrierDismissible: false,
+        barrierColor: Colors.black54,
+        transitionDuration: const Duration(milliseconds: 250),
+        transitionBuilder: (ctx, anim, secondAnim, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+            child: child,
+          );
+        },
+        pageBuilder: (ctx, anim, secondAnim) {
+          return Material(
+            type: MaterialType.transparency,
+            child: PopScope(
+            canPop: false,
+            child: Stack(
+              children: [
+                // Frosted glass background
+                Positioned.fill(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                    child: Container(color: Colors.transparent),
+                  ),
+                ),
+                // Center card
+                Center(
+                  child: Container(
+                    width: 200,
+                    padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF2A2A2A),
+                          Color(0xFF1A1A1A),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: const Color(0xFFF29F05).withOpacity(0.2),
+                        width: 1,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFF29F05).withOpacity(0.15),
+                          blurRadius: 30,
+                          spreadRadius: 2,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.5),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Animated icon + spinner ring
+                        SizedBox(
+                          width: 56,
+                          height: 56,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 56,
+                                height: 56,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.5,
+                                  color: const Color(0xFFF29F05).withOpacity(0.8),
+                                ),
+                              ),
+                              const _PulsingIcon(
+                                icon: Icons.delete_outline,
+                                color: Color(0xFFF29F05),
+                                size: 26,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        const Text(
+                          'Deleting',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'Cleaning up your post...',
+                          style: TextStyle(
+                            color: Colors.grey[500],
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          );
+        },
+      );
+
       try {
         final storageService = StorageService();
         await storageService.deletePostImage(widget.post.uid, widget.post.postId);
@@ -122,16 +236,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
         await postService.deletePost(widget.post.postId, widget.post.uid);
 
         if (context.mounted) {
+          Navigator.pop(context); // Close loading dialog
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Post deleted'),
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context, true);
+          Navigator.pop(context, true); // Return to previous page
         }
       } catch (e) {
         if (context.mounted) {
+          Navigator.pop(context); // Close loading dialog
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to delete post: $e'),
@@ -224,33 +340,39 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ),
             ),
 
-            // Post Image
-            SizedBox(
-              width: double.infinity,
-              child: Image.network(
-                widget.post.imageUrl,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Container(
-                    height: MediaQuery.of(context).size.width,
-                    color: const Color(0xFF333333),
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                            : null,
-                        color: const Color(0xFFF29F05),
+            // Post Image — constrained to max 4:5 aspect ratio
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.width * 1.25, // 4:5
+              ),
+              child: Container(
+                width: double.infinity,
+                color: const Color(0xFF111111),
+                child: Image.network(
+                  widget.post.imageUrl,
+                  fit: BoxFit.contain,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return SizedBox(
+                      height: MediaQuery.of(context).size.width,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: const Color(0xFFF29F05),
+                        ),
                       ),
+                    );
+                  },
+                  errorBuilder: (_, __, ___) => SizedBox(
+                    height: MediaQuery.of(context).size.width,
+                    child: const Center(
+                      child: Icon(Icons.broken_image,
+                          size: 64, color: Colors.grey),
                     ),
-                  );
-                },
-                errorBuilder: (_, __, ___) => Container(
-                  height: MediaQuery.of(context).size.width,
-                  color: const Color(0xFF333333),
-                  child: const Icon(Icons.broken_image,
-                      size: 64, color: Colors.grey),
+                  ),
                 ),
               ),
             ),
@@ -371,5 +493,54 @@ class _PostDetailPageState extends State<PostDetailPage> {
         });
       }
     }
+  }
+}
+
+/// Pulsing icon widget for the delete loading overlay
+class _PulsingIcon extends StatefulWidget {
+  final IconData icon;
+  final Color color;
+  final double size;
+
+  const _PulsingIcon({
+    required this.icon,
+    required this.color,
+    required this.size,
+  });
+
+  @override
+  State<_PulsingIcon> createState() => _PulsingIconState();
+}
+
+class _PulsingIconState extends State<_PulsingIcon>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
+
+    _scaleAnimation = Tween<double>(begin: 0.85, end: 1.15).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: Icon(widget.icon, color: widget.color, size: widget.size),
+    );
   }
 }

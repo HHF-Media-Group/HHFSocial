@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/comment_model.dart';
 import '../utils/logger_service.dart';
+import 'notification_service.dart';
 
 class CommentService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -42,6 +43,10 @@ class CommentService {
       });
 
       await batch.commit();
+
+      // Fire-and-forget: send comment notification
+      _sendCommentNotification(postId, uid, username, profilePictureUrl, text);
+
       return comment;
     } catch (e, stackTrace) {
       LoggerService.logError('Error adding comment', e, stackTrace);
@@ -92,5 +97,34 @@ class CommentService {
       LoggerService.logError('Error getting comments', e, stackTrace);
       return [];
     }
+  }
+
+  /// Helper: send a comment notification
+  void _sendCommentNotification(
+    String postId,
+    String senderUid,
+    String senderUsername,
+    String? senderProfilePic,
+    String commentText,
+  ) async {
+    try {
+      final postDoc = await _firestore.collection('posts').doc(postId).get();
+      if (!postDoc.exists) return;
+      final postData = postDoc.data()!;
+      final postOwnerUid = postData['uid'] as String;
+
+      await NotificationService().createNotification(
+        recipientUid: postOwnerUid,
+        senderUid: senderUid,
+        senderUsername: senderUsername,
+        senderProfilePic: senderProfilePic,
+        type: 'comment',
+        postId: postId,
+        postImageUrl: postData['imageUrl'] as String?,
+        commentText: commentText.length > 100
+            ? '${commentText.substring(0, 100)}...'
+            : commentText,
+      );
+    } catch (_) {}
   }
 }

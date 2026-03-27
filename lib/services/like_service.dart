@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/logger_service.dart';
+import 'notification_service.dart';
+import 'database_service.dart';
 
 class LikeService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -27,6 +29,9 @@ class LikeService {
       });
 
       await batch.commit();
+
+      // Fire-and-forget: send like notification
+      _sendLikeNotification(uid, postId);
     } catch (e, stackTrace) {
       LoggerService.logError('Error liking post', e, stackTrace);
       rethrow;
@@ -89,5 +94,30 @@ class LikeService {
       LoggerService.logError('Error batch checking likes', e, stackTrace);
     }
     return result;
+  }
+
+  /// Helper: send a like notification
+  void _sendLikeNotification(String senderUid, String postId) async {
+    try {
+      // Get post to find owner and image
+      final postDoc = await _firestore.collection('posts').doc(postId).get();
+      if (!postDoc.exists) return;
+      final postData = postDoc.data()!;
+      final postOwnerUid = postData['uid'] as String;
+
+      // Get sender info
+      final sender = await DatabaseService().getUser(senderUid);
+      if (sender == null) return;
+
+      await NotificationService().createNotification(
+        recipientUid: postOwnerUid,
+        senderUid: senderUid,
+        senderUsername: sender.username,
+        senderProfilePic: sender.profilePictureUrl,
+        type: 'like',
+        postId: postId,
+        postImageUrl: postData['imageUrl'] as String?,
+      );
+    } catch (_) {}
   }
 }

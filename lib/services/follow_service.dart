@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../utils/logger_service.dart';
+import 'notification_service.dart';
+import 'database_service.dart';
 
 class FollowService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -46,6 +48,9 @@ class FollowService {
       });
 
       await batch.commit();
+
+      // Fire-and-forget: send follow notification
+      _sendFollowNotification(currentUid, targetUid);
     } catch (e, stackTrace) {
       LoggerService.logError('Error following user', e, stackTrace);
       rethrow;
@@ -138,5 +143,21 @@ class FollowService {
       LoggerService.logError('Error getting following', e, stackTrace);
       return [];
     }
+  }
+
+  /// Helper: send a follow notification
+  void _sendFollowNotification(String senderUid, String recipientUid) async {
+    try {
+      final sender = await DatabaseService().getUser(senderUid);
+      if (sender == null) return;
+
+      await NotificationService().createNotification(
+        recipientUid: recipientUid,
+        senderUid: senderUid,
+        senderUsername: sender.username,
+        senderProfilePic: sender.profilePictureUrl,
+        type: 'follow',
+      );
+    } catch (_) {}
   }
 }

@@ -113,12 +113,41 @@ class PostService {
   // Delete a post
   Future<void> deletePost(String postId, String uid) async {
     try {
-      await _firestore.collection('posts').doc(postId).delete();
+      final postRef = _firestore.collection('posts').doc(postId);
 
-      // Decrement post count on user doc
+      // 1. Delete all likes subcollection docs
+      final likesSnapshot = await postRef.collection('likes').get();
+      for (final doc in likesSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // 2. Delete all comments subcollection docs
+      final commentsSnapshot = await postRef.collection('comments').get();
+      for (final doc in commentsSnapshot.docs) {
+        await doc.reference.delete();
+      }
+
+      // 3. Delete the post document
+      await postRef.delete();
+
+      // 4. Decrement post count on user doc
       await _firestore.collection('users').doc(uid).update({
         'postsCount': FieldValue.increment(-1),
       });
+
+      // 5. Delete all notifications referencing this post (best-effort)
+      try {
+        final notifSnapshot = await _firestore
+            .collection('notifications')
+            .where('recipientUid', isEqualTo: uid)
+            .where('postId', isEqualTo: postId)
+            .get();
+        for (final doc in notifSnapshot.docs) {
+          await doc.reference.delete();
+        }
+      } catch (_) {
+        // Non-critical — don't block post deletion
+      }
     } catch (e, stackTrace) {
       LoggerService.logError('Error deleting post', e, stackTrace);
       rethrow;
