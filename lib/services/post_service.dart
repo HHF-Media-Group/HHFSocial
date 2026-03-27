@@ -191,4 +191,83 @@ class PostService {
       return [];
     }
   }
+
+  /// Discovery feed: followed posts first (priority), then shuffled posts
+  /// from non-followed users. Excludes the current user's own posts.
+  Future<List<PostModel>> getDiscoveryFeed({
+    required String currentUid,
+    required List<String> followingUids,
+    int followedLimit = 30,
+    int discoveryLimit = 20,
+  }) async {
+    try {
+      // 1. Get followed users' posts (priority)
+      final followedPosts = followingUids.isNotEmpty
+          ? await getFeedPosts(followingUids, limit: followedLimit)
+          : <PostModel>[];
+
+      final followedPostIds = followedPosts.map((p) => p.postId).toSet();
+
+      // 2. Get recent posts from ALL users (discovery pool)
+      final discoverySnapshot = await _firestore
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .limit(followedLimit + discoveryLimit + 10) // fetch extra to filter
+          .get();
+
+      final discoveryPosts = discoverySnapshot.docs
+          .map((doc) => PostModel.fromMap(doc.data()))
+          .where((p) =>
+              p.uid != currentUid &&          // exclude own posts
+              !followedPostIds.contains(p.postId)) // exclude already shown
+          .toList();
+
+      // 3. Shuffle discovery posts for variety
+      discoveryPosts.shuffle();
+
+      // 4. Take only what we need
+      final trimmedDiscovery = discoveryPosts.length > discoveryLimit
+          ? discoveryPosts.sublist(0, discoveryLimit)
+          : discoveryPosts;
+
+      // 5. Combine: followed first, then discovery
+      return [...followedPosts, ...trimmedDiscovery];
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error getting discovery feed', e, stackTrace);
+      return [];
+    }
+  }
+
+  /// Paginated global posts query for infinite scroll.
+  /// Returns (posts, lastDocSnapshot) for cursor-based pagination.
+  Future<({List<PostModel> posts, DocumentSnapshot? lastDoc})> getPaginatedPosts({
+    required String currentUid,
+    DocumentSnapshot? startAfter,
+    int pageSize = 15,
+  }) async {
+    try {
+      Query query = _firestore
+          .collection('posts')
+          .orderBy('createdAt', descending: true)
+          .limit(pageSize);
+
+      if (startAfter != null) {
+        query = query.startAfterDocument(startAfter);
+      }
+
+      final snapshot = await query.get();
+
+      final posts = snapshot.docs
+          .map((doc) => PostModel.fromMap(doc.data() as Map<String, dynamic>))
+          .where((p) => p.uid != currentUid) // exclude own posts
+          .toList();
+
+      final lastDoc = snapshot.docs.isNotEmpty ? snapshot.docs.last : null;
+
+      return (posts: posts, lastDoc: lastDoc);
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error getting paginated posts', e, stackTrace);
+      return (posts: <PostModel>[], lastDoc: null);
+    }
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
@@ -23,6 +24,7 @@ class FeedPageState extends State<FeedPage> {
   final FollowService _followService = FollowService();
   final DatabaseService _databaseService = DatabaseService();
   final LikeService _likeService = LikeService();
+  final ScrollController _scrollController = ScrollController();
 
   List<PostModel> _posts = [];
   Map<String, UserModel> _userCache = {};
@@ -30,7 +32,11 @@ class FeedPageState extends State<FeedPage> {
   Map<String, int> _likeCounts = {};
   Map<String, int> _commentCounts = {};
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
   String? _currentUid;
+  List<String> _followingUids = [];
+  DocumentSnapshot? _lastDocument;
 
   // Track which post is showing the heart animation
   String? _animatingPostId;
@@ -39,7 +45,24 @@ class FeedPageState extends State<FeedPage> {
   void initState() {
     super.initState();
     _currentUid = context.read<AuthService>().currentUser?.uid;
+    _scrollController.addListener(_onScroll);
     _loadFeed();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+            _scrollController.position.maxScrollExtent - 300 &&
+        !_isLoadingMore &&
+        _hasMore) {
+      _loadMore();
+    }
   }
 
   /// Public method to reload the feed (called on tab switch)
@@ -50,37 +73,99 @@ class FeedPageState extends State<FeedPage> {
   Future<void> _loadFeed() async {
     if (_currentUid == null) return;
 
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _lastDocument = null;
+      _hasMore = true;
+    });
 
-    final followingUids = await _followService.getFollowing(_currentUid!);
+    _followingUids = await _followService.getFollowing(_currentUid!);
 
-    if (followingUids.isEmpty) {
-      if (mounted) setState(() => _isLoading = false);
+    // First page: followed first, then discovery
+    final result = await _postService.getPaginatedPosts(
+      currentUid: _currentUid!,
+      pageSize: 20,
+    );
+
+    // Also get followed posts for priority
+    List<PostModel> followedPosts = [];
+    if (_followingUids.isNotEmpty) {
+      followedPosts = await _postService.getFeedPosts(_followingUids, limit: 15);
+    }
+
+    // Merge: followed first, then paginated (dedupe)
+    final followedIds = followedPosts.map((p) => p.postId).toSet();
+    final discoveryPosts = result.posts
+        .where((p) => !followedIds.contains(p.postId))
+        .toList();
+
+    final allPosts = [...followedPosts, ...discoveryPosts];
+
+    _lastDocument = result.lastDoc;
+    if (result.posts.isEmpty) _hasMore = false;
+
+    await _hydratePostData(allPosts, replace: true);
+  }
+
+  Future<void> _loadMore() async {
+    if (_currentUid == null || _lastDocument == null) return;
+
+    setState(() => _isLoadingMore = true);
+
+    final result = await _postService.getPaginatedPosts(
+      currentUid: _currentUid!,
+      startAfter: _lastDocument,
+      pageSize: 15,
+    );
+
+    _lastDocument = result.lastDoc;
+    if (result.posts.isEmpty) {
+      if (mounted) setState(() {
+        _hasMore = false;
+        _isLoadingMore = false;
+      });
       return;
     }
 
-    final posts = await _postService.getFeedPosts(followingUids);
+    // Remove duplicates (posts already in feed)
+    final existingIds = _posts.map((p) => p.postId).toSet();
+    final newPosts = result.posts
+        .where((p) => !existingIds.contains(p.postId))
+        .toList();
 
+    await _hydratePostData(newPosts, replace: false);
+  }
+
+  /// Fetches user data, like status, and counts for a list of posts.
+  /// If [replace] is true, replaces the entire feed; otherwise appends.
+  Future<void> _hydratePostData(List<PostModel> posts, {required bool replace}) async {
     final uniqueUids = posts.map((p) => p.uid).toSet().toList();
     final users = await _databaseService.getUsersByIds(uniqueUids);
     final userMap = {for (var u in users) u.uid: u};
 
-    // Batch check likes for all posts
     final postIds = posts.map((p) => p.postId).toList();
     final likedMap = await _likeService.batchCheckLikes(_currentUid!, postIds);
 
-    // Initialize local like counts and comment counts
     final countMap = {for (var p in posts) p.postId: p.likesCount};
     final commentCountMap = {for (var p in posts) p.postId: p.commentsCount};
 
     if (mounted) {
       setState(() {
-        _posts = posts;
-        _userCache = userMap;
-        _likedPosts = likedMap;
-        _likeCounts = countMap;
-        _commentCounts = commentCountMap;
+        if (replace) {
+          _posts = posts;
+          _userCache = userMap;
+          _likedPosts = likedMap;
+          _likeCounts = countMap;
+          _commentCounts = commentCountMap;
+        } else {
+          _posts.addAll(posts);
+          _userCache.addAll(userMap);
+          _likedPosts.addAll(likedMap);
+          _likeCounts.addAll(countMap);
+          _commentCounts.addAll(commentCountMap);
+        }
         _isLoading = false;
+        _isLoadingMore = false;
       });
     }
   }
@@ -193,10 +278,31 @@ class FeedPageState extends State<FeedPage> {
                   onRefresh: _loadFeed,
                   color: const Color(0xFFF29F05),
                   child: ListView.builder(
+                    controller: _scrollController,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 12),
-                    itemCount: _posts.length,
+                    itemCount: _posts.length + (_hasMore ? 1 : 0),
                     itemBuilder: (context, index) {
+                      // Loading footer
+                      if (index == _posts.length) {
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 24),
+                          child: Center(
+                            child: _isLoadingMore
+                                ? const CircularProgressIndicator(
+                                    color: Color(0xFFF29F05),
+                                    strokeWidth: 2,
+                                  )
+                                : Text(
+                                    'Scroll for more',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                          ),
+                        );
+                      }
                       final post = _posts[index];
                       final user = _userCache[post.uid];
                       return _buildPostCard(post, user);
