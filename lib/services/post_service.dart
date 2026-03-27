@@ -124,4 +124,42 @@ class PostService {
       rethrow;
     }
   }
+
+  // Get feed posts from a list of followed user UIDs
+  Future<List<PostModel>> getFeedPosts(List<String> followingUids, {int limit = 50}) async {
+    if (followingUids.isEmpty) return [];
+
+    try {
+      final List<PostModel> allPosts = [];
+
+      // Firestore whereIn supports max 10 items — batch the queries
+      for (var i = 0; i < followingUids.length; i += 10) {
+        final batch = followingUids.sublist(
+          i,
+          i + 10 > followingUids.length ? followingUids.length : i + 10,
+        );
+
+        final snapshot = await _firestore
+            .collection('posts')
+            .where('uid', whereIn: batch)
+            .orderBy('createdAt', descending: true)
+            .limit(limit)
+            .get();
+
+        allPosts.addAll(
+          snapshot.docs.map((doc) => PostModel.fromMap(doc.data())),
+        );
+      }
+
+      // Sort all results by createdAt descending and take top N
+      allPosts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      if (allPosts.length > limit) {
+        return allPosts.sublist(0, limit);
+      }
+      return allPosts;
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error getting feed posts', e, stackTrace);
+      return [];
+    }
+  }
 }

@@ -7,6 +7,7 @@ import '../../services/database_service.dart';
 import '../../services/post_service.dart';
 import '../../services/follow_service.dart';
 import '../post/post_detail_page.dart';
+import 'follow_list_page.dart';
 
 class UserProfilePage extends StatefulWidget {
   final UserModel user;
@@ -151,8 +152,16 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               _buildStatColumn('${_posts.length}', 'Posts'),
-                              _buildStatColumn('$_followersCount', 'Followers'),
-                              _buildStatColumn('${user.followingCount}', 'Following'),
+                              _buildStatColumn(
+                                '$_followersCount',
+                                'Followers',
+                                onTap: () => _openFollowList(FollowListType.followers),
+                              ),
+                              _buildStatColumn(
+                                '${user.followingCount}',
+                                'Following',
+                                onTap: () => _openFollowList(FollowListType.following),
+                              ),
                             ],
                           ),
                         ),
@@ -361,27 +370,43 @@ class _UserProfilePageState extends State<UserProfilePage> {
     );
   }
 
-  Widget _buildStatColumn(String count, String label) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          count,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+  Widget _buildStatColumn(String count, String label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            count,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.grey[400],
-            fontSize: 13,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey[400],
+              fontSize: 13,
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _openFollowList(FollowListType type) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FollowListPage(
+          uid: _user.uid,
+          username: _user.username,
+          listType: type,
         ),
-      ],
+      ),
     );
   }
 }

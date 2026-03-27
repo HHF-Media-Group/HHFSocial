@@ -7,6 +7,7 @@ class PostModel {
   final String? caption;
   final DateTime createdAt;
   final int likesCount;
+  final int commentsCount;
 
   PostModel({
     required this.postId,
@@ -15,6 +16,7 @@ class PostModel {
     this.caption,
     required this.createdAt,
     this.likesCount = 0,
+    this.commentsCount = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +27,7 @@ class PostModel {
       'caption': caption,
       'createdAt': Timestamp.fromDate(createdAt),
       'likesCount': likesCount,
+      'commentsCount': commentsCount,
     };
   }
 
@@ -42,6 +45,7 @@ class PostModel {
       caption: map['caption'],
       createdAt: parseCreatedAt(),
       likesCount: map['likesCount'] ?? 0,
+      commentsCount: map['commentsCount'] ?? 0,
     );
   }
 
@@ -52,6 +56,7 @@ class PostModel {
     String? caption,
     DateTime? createdAt,
     int? likesCount,
+    int? commentsCount,
     bool clearCaption = false,
   }) {
     return PostModel(
@@ -61,6 +66,7 @@ class PostModel {
       caption: clearCaption ? null : (caption ?? this.caption),
       createdAt: createdAt ?? this.createdAt,
       likesCount: likesCount ?? this.likesCount,
+      commentsCount: commentsCount ?? this.commentsCount,
     );
   }
 }

@@ -162,5 +162,27 @@ class DatabaseService {
       return [];
     }
   }
+
+  // Batch fetch users by list of UIDs
+  Future<List<UserModel>> getUsersByIds(List<String> uids) async {
+    if (uids.isEmpty) return [];
+
+    try {
+      // Firestore whereIn supports max 30 items per query
+      final List<UserModel> users = [];
+      for (var i = 0; i < uids.length; i += 30) {
+        final batch = uids.sublist(i, i + 30 > uids.length ? uids.length : i + 30);
+        final snapshot = await _firestore
+            .collection('users')
+            .where(FieldPath.documentId, whereIn: batch)
+            .get();
+        users.addAll(snapshot.docs.map((doc) => UserModel.fromMap(doc.data())));
+      }
+      return users;
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error batch fetching users', e, stackTrace);
+      return [];
+    }
+  }
 }
 

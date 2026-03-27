@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../../models/post_model.dart';
+import '../../services/auth_service.dart';
 import '../../services/post_service.dart';
 import '../../services/storage_service.dart';
+import '../../services/like_service.dart';
+import 'comments_sheet.dart';
 
-class PostDetailPage extends StatelessWidget {
+class PostDetailPage extends StatefulWidget {
   final PostModel post;
   final String currentUid;
   final String username;
@@ -18,15 +22,83 @@ class PostDetailPage extends StatelessWidget {
     this.profilePictureUrl,
   });
 
+  @override
+  State<PostDetailPage> createState() => _PostDetailPageState();
+}
+
+class _PostDetailPageState extends State<PostDetailPage> {
+  final LikeService _likeService = LikeService();
+  bool _isLiked = false;
+  int _likeCount = 0;
+  int _commentCount = 0;
+  bool _isLikeLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _likeCount = widget.post.likesCount;
+    _commentCount = widget.post.commentsCount;
+    _checkLikeStatus();
+  }
+
+  Future<void> _checkLikeStatus() async {
+    final uid = widget.currentUid.isNotEmpty
+        ? widget.currentUid
+        : context.read<AuthService>().currentUser?.uid;
+    if (uid == null || uid.isEmpty) {
+      setState(() => _isLikeLoading = false);
+      return;
+    }
+
+    final liked = await _likeService.hasLiked(uid, widget.post.postId);
+    if (mounted) {
+      setState(() {
+        _isLiked = liked;
+        _isLikeLoading = false;
+      });
+    }
+  }
+
+  Future<void> _toggleLike() async {
+    final uid = widget.currentUid.isNotEmpty
+        ? widget.currentUid
+        : context.read<AuthService>().currentUser?.uid;
+    if (uid == null || uid.isEmpty) return;
+
+    // Optimistic update
+    setState(() {
+      _isLiked = !_isLiked;
+      _likeCount += _isLiked ? 1 : -1;
+    });
+
+    try {
+      if (_isLiked) {
+        await _likeService.likePost(uid, widget.post.postId);
+      } else {
+        await _likeService.unlikePost(uid, widget.post.postId);
+      }
+    } catch (e) {
+      // Revert on error
+      if (mounted) {
+        setState(() {
+          _isLiked = !_isLiked;
+          _likeCount += _isLiked ? 1 : -1;
+        });
+      }
+    }
+  }
+
   Future<void> _deletePost(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF333333),
-        title: const Text('Delete Post', style: TextStyle(color: Colors.white)),
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Delete Post',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: const Text(
           'Are you sure you want to delete this post? This action cannot be undone.',
-          style: TextStyle(color: Color(0xFFE0E0E0)),
+          style: TextStyle(color: Colors.grey, fontSize: 15),
         ),
         actions: [
           TextButton(
@@ -43,13 +115,11 @@ class PostDetailPage extends StatelessWidget {
 
     if (confirmed == true && context.mounted) {
       try {
-        // Delete image from Storage
         final storageService = StorageService();
-        await storageService.deletePostImage(post.uid, post.postId);
+        await storageService.deletePostImage(widget.post.uid, widget.post.postId);
 
-        // Delete post from Firestore
         final postService = PostService();
-        await postService.deletePost(post.postId, post.uid);
+        await postService.deletePost(widget.post.postId, widget.post.uid);
 
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -58,7 +128,7 @@ class PostDetailPage extends StatelessWidget {
               backgroundColor: Colors.green,
             ),
           );
-          Navigator.pop(context, true); // true = post was deleted
+          Navigator.pop(context, true);
         }
       } catch (e) {
         if (context.mounted) {
@@ -75,8 +145,9 @@ class PostDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isOwner = post.uid == currentUid;
-    final formattedDate = DateFormat('MMMM d, yyyy').format(post.createdAt);
+    final isOwner = widget.post.uid == widget.currentUid;
+    final formattedDate =
+        DateFormat('MMMM d, yyyy').format(widget.post.createdAt);
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F1F1F),
@@ -105,10 +176,10 @@ class PostDetailPage extends StatelessWidget {
           children: [
             // User Header
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
-                  // Profile Picture
                   Container(
                     width: 36,
                     height: 36,
@@ -120,9 +191,9 @@ class PostDetailPage extends StatelessWidget {
                       ),
                     ),
                     child: ClipOval(
-                      child: profilePictureUrl != null
+                      child: widget.profilePictureUrl != null
                           ? Image.network(
-                              profilePictureUrl!,
+                              widget.profilePictureUrl!,
                               fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => const Icon(
                                 Icons.person,
@@ -142,7 +213,7 @@ class PostDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    username,
+                    widget.username,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -157,7 +228,7 @@ class PostDetailPage extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: Image.network(
-                post.imageUrl,
+                widget.post.imageUrl,
                 fit: BoxFit.cover,
                 loadingBuilder: (context, child, loadingProgress) {
                   if (loadingProgress == null) return child;
@@ -178,23 +249,80 @@ class PostDetailPage extends StatelessWidget {
                 errorBuilder: (_, __, ___) => Container(
                   height: MediaQuery.of(context).size.width,
                   color: const Color(0xFF333333),
-                  child: const Icon(Icons.broken_image, size: 64, color: Colors.grey),
+                  child: const Icon(Icons.broken_image,
+                      size: 64, color: Colors.grey),
+                ),
+              ),
+            ),
+
+            // Like Row
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: GestureDetector(
+                onTap: _isLikeLoading ? null : _toggleLike,
+                child: Row(
+                  children: [
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(
+                            scale: animation, child: child);
+                      },
+                      child: Icon(
+                        _isLiked ? Icons.favorite : Icons.favorite_border,
+                        key: ValueKey(_isLiked),
+                        color: _isLiked ? Colors.red : Colors.grey[400],
+                        size: 26,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '$_likeCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const SizedBox(width: 24),
+                    // Comment button
+                    GestureDetector(
+                      onTap: _openComments,
+                      child: Row(
+                        children: [
+                          Icon(Icons.chat_bubble_outline,
+                              color: Colors.grey[400], size: 24),
+                          const SizedBox(width: 8),
+                          Text(
+                            '$_commentCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
 
             // Caption & Date
             Padding(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (post.caption != null && post.caption!.isNotEmpty) ...[
+                  if (widget.post.caption != null &&
+                      widget.post.caption!.isNotEmpty) ...[
                     RichText(
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: '$username  ',
+                            text: '${widget.username}  ',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -202,7 +330,7 @@ class PostDetailPage extends StatelessWidget {
                             ),
                           ),
                           TextSpan(
-                            text: post.caption!,
+                            text: widget.post.caption!,
                             style: const TextStyle(
                               color: Color(0xFFE0E0E0),
                               fontSize: 14,
@@ -223,9 +351,25 @@ class PostDetailPage extends StatelessWidget {
                 ],
               ),
             ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
+  }
+
+  void _openComments() async {
+    await CommentsSheet.show(context, widget.post.postId);
+    // Refresh comment count after closing
+    if (mounted) {
+      final postService = PostService();
+      final freshPost = await postService.getPost(widget.post.postId);
+      if (freshPost != null && mounted) {
+        setState(() {
+          _commentCount = freshPost.commentsCount;
+        });
+      }
+    }
   }
 }

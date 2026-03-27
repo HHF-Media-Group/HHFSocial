@@ -11,6 +11,7 @@ import '../../services/post_service.dart';
 import '../post/create_post_page.dart';
 import '../post/post_detail_page.dart';
 import 'edit_profile_page.dart';
+import 'follow_list_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -32,6 +33,11 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   void initState() {
     super.initState();
+    _loadUserData();
+  }
+
+  /// Public method to reload profile data (called on tab switch)
+  void reload() {
     _loadUserData();
   }
 
@@ -241,6 +247,49 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _showLogoutConfirmation() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Log Out',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Are you sure you want to log out?',
+          style: TextStyle(color: Colors.grey, fontSize: 15),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text(
+              'Cancel',
+              style: TextStyle(color: Colors.grey, fontSize: 15),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Log Out',
+              style: TextStyle(
+                color: Color(0xFFF29F05),
+                fontWeight: FontWeight.bold,
+                fontSize: 15,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true && mounted) {
+      final authService = context.read<AuthService>();
+      await authService.signOut();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -258,10 +307,9 @@ class ProfilePageState extends State<ProfilePage> {
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.menu, color: Colors.white),
-            onPressed: () {
-              // TODO: Settings menu
-            },
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Log out',
+            onPressed: () => _showLogoutConfirmation(),
           ),
         ],
       ),
@@ -368,8 +416,16 @@ class ProfilePageState extends State<ProfilePage> {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 _buildStatColumn('${_posts.length}', 'Posts'),
-                                _buildStatColumn('${_user?.followersCount ?? 0}', 'Followers'),
-                                _buildStatColumn('${_user?.followingCount ?? 0}', 'Following'),
+                                _buildStatColumn(
+                                  '${_user?.followersCount ?? 0}',
+                                  'Followers',
+                                  onTap: () => _openFollowList(FollowListType.followers),
+                                ),
+                                _buildStatColumn(
+                                  '${_user?.followingCount ?? 0}',
+                                  'Following',
+                                  onTap: () => _openFollowList(FollowListType.following),
+                                ),
                               ],
                             ),
                           ),
@@ -576,26 +632,43 @@ class ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildStatColumn(String count, String label) {
-    return Column(
-      children: [
-        Text(
-          count,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
+  Widget _buildStatColumn(String count, String label, {VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Text(
+            count,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.grey,
-            fontSize: 13,
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.grey,
+              fontSize: 13,
+            ),
           ),
+        ],
+      ),
+    );
+  }
+
+  void _openFollowList(FollowListType type) {
+    if (_user == null) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => FollowListPage(
+          uid: _user!.uid,
+          username: _user!.username,
+          listType: type,
         ),
-      ],
+      ),
     );
   }
 }

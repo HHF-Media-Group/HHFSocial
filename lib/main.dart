@@ -10,6 +10,7 @@ import 'screens/auth/login_page.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/post/create_post_page.dart';
 import 'screens/search/search_page.dart';
+import 'screens/feed/feed_page.dart';
 import 'models/post_model.dart';
 
 void main() async {
@@ -112,6 +113,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _currentIndex = 0;
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey<ProfilePageState>();
+  final GlobalKey<FeedPageState> _feedKey = GlobalKey<FeedPageState>();
 
   late final List<Widget> _pages;
 
@@ -119,7 +121,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _pages = [
-      const _FeedPage(),
+      FeedPage(key: _feedKey),
       const SearchPage(),
       const SizedBox.shrink(),
       ProfilePage(key: _profileKey),
@@ -139,13 +141,22 @@ class _HomePageState extends State<HomePage> {
           ),
         ).then((newPost) {
           if (newPost != null) {
-            // Refresh the profile grid instantly
+            // Refresh the profile grid and feed instantly
             _profileKey.currentState?.addPost(newPost);
+            _feedKey.currentState?.reload();
           }
         });
       }
       return;
     }
+
+    // Reload data when switching to a tab
+    if (index == 0) {
+      _feedKey.currentState?.reload();
+    } else if (index == 3) {
+      _profileKey.currentState?.reload();
+    }
+
     setState(() {
       _currentIndex = index;
     });
@@ -200,59 +211,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-// Temporary Feed Page (will be replaced with real feed later)
-class _FeedPage extends StatelessWidget {
-  const _FeedPage();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
-      appBar: AppBar(
-        title: const Text(
-          'HHF Social',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: Color(0xFFF29F05),
-          ),
-        ),
-        backgroundColor: const Color(0xFF1F1F1F),
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.grey),
-            tooltip: 'Logout',
-            onPressed: () {
-              context.read<AuthService>().signOut();
-            },
-          ),
-        ],
-      ),
-      body: const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.photo_camera_outlined, size: 64, color: Colors.grey),
-            SizedBox(height: 16),
-            Text(
-              'No posts yet',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Follow people to see their photos\nand videos here.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
