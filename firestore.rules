@@ -2,9 +2,14 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // Users collection - any authenticated user can read, only owner can write
+    // Exception: followersCount and followingCount can be updated by any authenticated user
     match /users/{userId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow create, delete: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && (
+        request.auth.uid == userId ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount', 'followingCount']))
+      );
       
       // Followers subcollection - the follower creates/deletes their own doc
       match /followers/{followerId} {

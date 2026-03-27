@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../models/post_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/database_service.dart';
 import '../../services/post_service.dart';
 import '../../services/follow_service.dart';
 import '../post/post_detail_page.dart';
@@ -17,11 +18,13 @@ class UserProfilePage extends StatefulWidget {
 }
 
 class _UserProfilePageState extends State<UserProfilePage> {
+  late UserModel _user;
   List<PostModel> _posts = [];
   bool _isLoading = true;
   bool _isFollowing = false;
   bool _isFollowLoading = false;
   int _followersCount = 0;
+  final DatabaseService _databaseService = DatabaseService();
   final PostService _postService = PostService();
   final FollowService _followService = FollowService();
 
@@ -30,12 +33,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
   @override
   void initState() {
     super.initState();
+    _user = widget.user;
     _followersCount = widget.user.followersCount;
     _currentUid = context.read<AuthService>().currentUser?.uid;
     _loadData();
   }
 
   Future<void> _loadData() async {
+    // Fetch fresh user data from Firestore (not stale search result)
+    final freshUser = await _databaseService.getUser(widget.user.uid);
     final posts = await _postService.getUserPosts(widget.user.uid);
 
     bool following = false;
@@ -45,6 +51,10 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     if (mounted) {
       setState(() {
+        if (freshUser != null) {
+          _user = freshUser;
+          _followersCount = freshUser.followersCount;
+        }
         _posts = posts;
         _isFollowing = following;
         _isLoading = false;
@@ -89,7 +99,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final user = widget.user;
+    final user = _user;
 
     return Scaffold(
       backgroundColor: const Color(0xFF1F1F1F),
