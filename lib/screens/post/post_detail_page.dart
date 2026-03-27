@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/post_model.dart';
@@ -33,6 +34,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
   int _likeCount = 0;
   int _commentCount = 0;
   bool _isLikeLoading = true;
+  VideoPlayerController? _videoController;
+  bool _isVideoPlaying = true;
 
   @override
   void initState() {
@@ -40,6 +43,24 @@ class _PostDetailPageState extends State<PostDetailPage> {
     _likeCount = widget.post.likesCount;
     _commentCount = widget.post.commentsCount;
     _checkLikeStatus();
+    if (widget.post.isVideo) _initVideo();
+  }
+
+  @override
+  void dispose() {
+    _videoController?.dispose();
+    super.dispose();
+  }
+
+  void _initVideo() {
+    _videoController = VideoPlayerController.networkUrl(Uri.parse(widget.post.imageUrl))
+      ..initialize().then((_) {
+        if (mounted) {
+          setState(() {});
+          _videoController!.setLooping(true);
+          _videoController!.play();
+        }
+      });
   }
 
   Future<void> _checkLikeStatus() async {
@@ -230,7 +251,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
       try {
         final storageService = StorageService();
-        await storageService.deletePostImage(widget.post.uid, widget.post.postId);
+        await storageService.deletePostImage(widget.post.uid, widget.post.postId, mediaType: widget.post.mediaType);
 
         final postService = PostService();
         await postService.deletePost(widget.post.postId, widget.post.uid);
@@ -340,7 +361,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ),
             ),
 
-            // Post Image — constrained to max 4:5 aspect ratio
+            // Post Media — constrained to max 4:5 aspect ratio
             ConstrainedBox(
               constraints: BoxConstraints(
                 maxHeight: MediaQuery.of(context).size.width * 1.25, // 4:5
@@ -348,32 +369,34 @@ class _PostDetailPageState extends State<PostDetailPage> {
               child: Container(
                 width: double.infinity,
                 color: const Color(0xFF111111),
-                child: Image.network(
-                  widget.post.imageUrl,
-                  fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return SizedBox(
-                      height: MediaQuery.of(context).size.width,
-                      child: Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
-                              : null,
-                          color: const Color(0xFFF29F05),
+                child: widget.post.isVideo
+                    ? _buildVideoPlayer()
+                    : Image.network(
+                        widget.post.imageUrl,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return SizedBox(
+                            height: MediaQuery.of(context).size.width,
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                                color: const Color(0xFFF29F05),
+                              ),
+                            ),
+                          );
+                        },
+                        errorBuilder: (_, __, ___) => SizedBox(
+                          height: MediaQuery.of(context).size.width,
+                          child: const Center(
+                            child: Icon(Icons.broken_image,
+                                size: 64, color: Colors.grey),
+                          ),
                         ),
                       ),
-                    );
-                  },
-                  errorBuilder: (_, __, ___) => SizedBox(
-                    height: MediaQuery.of(context).size.width,
-                    child: const Center(
-                      child: Icon(Icons.broken_image,
-                          size: 64, color: Colors.grey),
-                    ),
-                  ),
-                ),
               ),
             ),
 
@@ -493,6 +516,86 @@ class _PostDetailPageState extends State<PostDetailPage> {
         });
       }
     }
+  }
+
+  Widget _buildVideoPlayer() {
+    if (_videoController == null || !_videoController!.value.isInitialized) {
+      return SizedBox(
+        height: MediaQuery.of(context).size.width,
+        child: const Center(
+          child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+        ),
+      );
+    }
+
+    return GestureDetector(
+      onTap: () {
+        if (_videoController!.value.isPlaying) {
+          _videoController!.pause();
+        } else {
+          _videoController!.play();
+        }
+        setState(() => _isVideoPlaying = _videoController!.value.isPlaying);
+      },
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          AspectRatio(
+            aspectRatio: _videoController!.value.aspectRatio,
+            child: VideoPlayer(_videoController!),
+          ),
+          // Play/pause overlay
+          if (!_isVideoPlaying)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+            ),
+          // Mute button
+          Positioned(
+            bottom: 12,
+            right: 12,
+            child: GestureDetector(
+              onTap: () {
+                final vol = _videoController!.value.volume;
+                _videoController!.setVolume(vol > 0 ? 0 : 1);
+                setState(() {});
+              },
+              child: Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Icon(
+                  _videoController!.value.volume > 0 ? Icons.volume_up : Icons.volume_off,
+                  color: Colors.white,
+                  size: 18,
+                ),
+              ),
+            ),
+          ),
+          // Progress bar
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: VideoProgressIndicator(
+              _videoController!,
+              allowScrubbing: true,
+              colors: const VideoProgressColors(
+                playedColor: Color(0xFFF29F05),
+                bufferedColor: Colors.white24,
+                backgroundColor: Colors.white10,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

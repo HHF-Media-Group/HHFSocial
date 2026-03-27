@@ -372,7 +372,7 @@ class FeedPageState extends State<FeedPage> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: Image.network(
-                      post.imageUrl,
+                      post.displayImageUrl,
                       fit: BoxFit.cover,
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
@@ -396,6 +396,20 @@ class FeedPageState extends State<FeedPage> {
                     ),
                   ),
                 ),
+                // Video play icon overlay
+                if (post.isVideo)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(Icons.play_arrow, color: Colors.white, size: 20),
+                    ),
+                  ),
                 // Animated heart overlay on double-tap
                 if (isAnimating)
                   TweenAnimationBuilder<double>(

@@ -601,25 +601,40 @@ class ProfilePageState extends State<ProfilePage> {
                           final post = _posts[index];
                           return GestureDetector(
                             onTap: () => _navigateToPostDetail(post),
-                            child: Image.network(
-                              post.imageUrl,
-                              fit: BoxFit.cover,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return Container(
-                                  color: const Color(0xFF333333),
-                                  child: const Center(
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Color(0xFFF29F05),
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                Image.network(
+                                  post.displayImageUrl,
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Container(
+                                      color: const Color(0xFF333333),
+                                      child: const Center(
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Color(0xFFF29F05),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (_, __, ___) => Container(
+                                    color: const Color(0xFF333333),
+                                    child: const Icon(Icons.broken_image, color: Colors.grey),
+                                  ),
+                                ),
+                                if (post.isVideo)
+                                  Positioned(
+                                    top: 6,
+                                    right: 6,
+                                    child: Icon(
+                                      Icons.play_circle_fill,
+                                      color: Colors.white.withOpacity(0.9),
+                                      size: 22,
                                     ),
                                   ),
-                                );
-                              },
-                              errorBuilder: (_, __, ___) => Container(
-                                color: const Color(0xFF333333),
-                                child: const Icon(Icons.broken_image, color: Colors.grey),
-                              ),
+                              ],
                             ),
                           );
                         },

@@ -23,7 +23,7 @@ class StorageService {
     }
   }
 
-  // Upload Post Image (for future use)
+  // Upload Post Image
   Future<String?> uploadPostImage(String uid, File image, String postId) async {
     try {
       final ref = _storage.ref().child('posts').child(uid).child('$postId.jpg');
@@ -41,30 +41,88 @@ class StorageService {
     }
   }
 
-  // Delete Image (Robust method using UID)
+  // Upload Post Video (with real progress tracking)
+  Future<String?> uploadPostVideo(
+    String uid,
+    File video,
+    String postId, {
+    void Function(double progress)? onProgress,
+  }) async {
+    try {
+      final ref = _storage.ref().child('posts').child(uid).child('$postId.mp4');
+      
+      final uploadTask = ref.putFile(
+        video,
+        SettableMetadata(contentType: 'video/mp4'),
+      );
+
+      // Stream real progress
+      if (onProgress != null) {
+        uploadTask.snapshotEvents.listen((event) {
+          final progress = event.bytesTransferred / event.totalBytes;
+          onProgress(progress);
+        });
+      }
+
+      final snapshot = await uploadTask;
+      final downloadUrl = await snapshot.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error uploading post video', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // Upload Video Thumbnail
+  Future<String?> uploadVideoThumbnail(String uid, File thumbnail, String postId) async {
+    try {
+      final ref = _storage.ref().child('posts').child(uid).child('${postId}_thumb.jpg');
+      
+      final uploadTask = await ref.putFile(
+        thumbnail,
+        SettableMetadata(contentType: 'image/jpeg'),
+      );
+      
+      final downloadUrl = await uploadTask.ref.getDownloadURL();
+      return downloadUrl;
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error uploading video thumbnail', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  // Delete Profile Picture
   Future<void> deleteProfilePicture(String uid) async {
     try {
-      // Direct path reference is more robust than refFromURL
       final ref = _storage.ref().child('profile_pictures').child('$uid.jpg');
       await ref.delete();
     } catch (e, stackTrace) {
       LoggerService.logError('Error deleting profile picture', e, stackTrace);
-      // We don't rethrow here because if the file doesn't exist (e.g. already deleted),
-      // we still want the UI to update and remove the link from Firestore.
     }
   }
 
-  // Delete Post Image (Robust method using UID and postId)
-  Future<void> deletePostImage(String uid, String postId) async {
+  // Delete Post Media (handles both image and video)
+  Future<void> deletePostImage(String uid, String postId, {String mediaType = 'image'}) async {
     try {
-      final ref = _storage.ref().child('posts').child(uid).child('$postId.jpg');
-      await ref.delete();
+      if (mediaType == 'video') {
+        // Delete video file
+        final videoRef = _storage.ref().child('posts').child(uid).child('$postId.mp4');
+        await videoRef.delete();
+        // Delete thumbnail
+        try {
+          final thumbRef = _storage.ref().child('posts').child(uid).child('${postId}_thumb.jpg');
+          await thumbRef.delete();
+        } catch (_) {}
+      } else {
+        final ref = _storage.ref().child('posts').child(uid).child('$postId.jpg');
+        await ref.delete();
+      }
     } catch (e, stackTrace) {
-      LoggerService.logError('Error deleting post image', e, stackTrace);
+      LoggerService.logError('Error deleting post media', e, stackTrace);
     }
   }
 
-  // Delete Image (Generic URL based - kept for other uses if needed)
+  // Delete Image (Generic URL based)
   Future<void> deleteImage(String url) async {
     try {
       final ref = _storage.refFromURL(url);

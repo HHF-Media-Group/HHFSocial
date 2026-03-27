@@ -47,6 +47,8 @@ class PostService {
     required String uid,
     required String imageUrl,
     String? caption,
+    String mediaType = 'image',
+    String? thumbnailUrl,
   }) async {
     try {
       final docRef = _firestore.collection('posts').doc(postId);
@@ -54,6 +56,8 @@ class PostService {
         postId: postId,
         uid: uid,
         imageUrl: imageUrl,
+        mediaType: mediaType,
+        thumbnailUrl: thumbnailUrl,
         caption: caption,
         createdAt: DateTime.now(),
         likesCount: 0,

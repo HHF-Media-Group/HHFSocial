@@ -19,9 +19,11 @@ service firebase.storage {
     // Posts: Users can read all posts, write their own
     match /posts/{userId}/{fileName} {
       allow read: if request.auth != null;
+      // Allow images (up to 10MB) and videos (up to 50MB)
       allow create, update: if request.auth != null && request.auth.uid == userId
-                   && request.resource.size < 10 * 1024 * 1024
-                   && request.resource.contentType.matches('image/.*');
+                   && request.resource.size < 50 * 1024 * 1024
+                   && (request.resource.contentType.matches('image/.*')
+                       || request.resource.contentType.matches('video/.*'));
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
   }
