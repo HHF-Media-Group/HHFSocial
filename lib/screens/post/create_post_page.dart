@@ -28,6 +28,7 @@ class _CreatePostPageState extends State<CreatePostPage> {
   VideoPlayerController? _videoController;
   bool _isPosting = false;
   bool _isCompressing = false;
+  bool _isPickerActive = false;
   double _uploadProgress = 0;
   String _mediaType = 'image';
 
@@ -115,20 +116,22 @@ class _CreatePostPageState extends State<CreatePostPage> {
         ),
       ),
     ).then((_) {
-      // If nothing was selected and no media exists, go back
-      if (_selectedImage == null && _selectedVideo == null && mounted) {
+      // Only pop if picker is NOT active and no media exists
+      if (!_isPickerActive && _selectedImage == null && _selectedVideo == null && mounted) {
         Navigator.pop(context);
       }
     });
   }
 
   Future<void> _pickImage() async {
+    _isPickerActive = true;
     final XFile? pickedFile = await _imagePicker.pickImage(
       source: ImageSource.gallery,
       maxWidth: 1080,
       maxHeight: 1080,
       imageQuality: 85,
     );
+    _isPickerActive = false;
 
     if (pickedFile != null) {
       _videoController?.dispose();
@@ -145,10 +148,12 @@ class _CreatePostPageState extends State<CreatePostPage> {
   }
 
   Future<void> _pickVideo() async {
+    _isPickerActive = true;
     final XFile? pickedFile = await _imagePicker.pickVideo(
       source: ImageSource.gallery,
       maxDuration: const Duration(seconds: 60),
     );
+    _isPickerActive = false;
 
     if (pickedFile != null) {
       setState(() => _isCompressing = true);
