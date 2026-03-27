@@ -10,6 +10,8 @@ class UserModel {
   final String? profilePictureUrl;
   final String? bio;
   final String? website;
+  final int followersCount;
+  final int followingCount;
 
   UserModel({
     required this.uid,
@@ -21,6 +23,8 @@ class UserModel {
     this.profilePictureUrl,
     this.bio,
     this.website,
+    this.followersCount = 0,
+    this.followingCount = 0,
   });
 
   Map<String, dynamic> toMap() {
@@ -34,6 +38,8 @@ class UserModel {
       'profilePictureUrl': profilePictureUrl,
       'bio': bio,
       'website': website,
+      'followersCount': followersCount,
+      'followingCount': followingCount,
     };
   }
 
@@ -61,6 +67,8 @@ class UserModel {
       profilePictureUrl: map['profilePictureUrl'],
       bio: map['bio'],
       website: map['website'],
+      followersCount: map['followersCount'] ?? 0,
+      followingCount: map['followingCount'] ?? 0,
     );
   }
 
@@ -76,6 +84,8 @@ class UserModel {
     String? profilePictureUrl,
     String? bio,
     String? website,
+    int? followersCount,
+    int? followingCount,
     bool clearProfilePicture = false,
     bool clearBio = false,
     bool clearWebsite = false,
@@ -90,6 +100,8 @@ class UserModel {
       profilePictureUrl: clearProfilePicture ? null : (profilePictureUrl ?? this.profilePictureUrl),
       bio: clearBio ? null : (bio ?? this.bio),
       website: clearWebsite ? null : (website ?? this.website),
+      followersCount: followersCount ?? this.followersCount,
+      followingCount: followingCount ?? this.followingCount,
     );
   }
 }

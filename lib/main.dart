@@ -9,6 +9,7 @@ import 'services/auth_service.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/post/create_post_page.dart';
+import 'screens/search/search_page.dart';
 import 'models/post_model.dart';
 
 void main() async {
@@ -119,13 +120,14 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     _pages = [
       const _FeedPage(),
+      const SearchPage(),
       const SizedBox.shrink(),
       ProfilePage(key: _profileKey),
     ];
   }
 
   void _onTabTapped(int index) {
-    if (index == 1) {
+    if (index == 2) {
       // Create Post - navigate to create page instead of switching tab
       final authService = context.read<AuthService>();
       final uid = authService.currentUser?.uid;
@@ -176,6 +178,11 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.home_outlined, size: 28),
               activeIcon: Icon(Icons.home, size: 28),
               label: 'Home',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search, size: 28),
+              activeIcon: Icon(Icons.search, size: 28),
+              label: 'Search',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.add_box_outlined, size: 28),

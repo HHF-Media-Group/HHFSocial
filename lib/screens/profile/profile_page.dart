@@ -255,10 +255,7 @@ class ProfilePageState extends State<ProfilePage> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.menu, color: Colors.white),
@@ -371,8 +368,8 @@ class ProfilePageState extends State<ProfilePage> {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 _buildStatColumn('${_posts.length}', 'Posts'),
-                                _buildStatColumn('0', 'Followers'),
-                                _buildStatColumn('0', 'Following'),
+                                _buildStatColumn('${_user?.followersCount ?? 0}', 'Followers'),
+                                _buildStatColumn('${_user?.followingCount ?? 0}', 'Following'),
                               ],
                             ),
                           ),

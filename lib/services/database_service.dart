@@ -134,5 +134,33 @@ class DatabaseService {
     // 4. Release old username (cleanup, don't fail if this errors)
     await releaseUsername(oldLower);
   }
+
+  // Search users by username prefix (case-insensitive via lowercase storage)
+  Future<List<UserModel>> searchUsers(String query, {String? excludeUid, int limit = 20}) async {
+    if (query.trim().isEmpty) return [];
+
+    final searchTerm = query.toLowerCase().trim();
+    // Firestore range query: >= searchTerm and < searchTerm + high Unicode char
+    final endTerm = '$searchTerm\uf8ff';
+
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .where('username', isGreaterThanOrEqualTo: searchTerm)
+          .where('username', isLessThan: endTerm)
+          .limit(limit)
+          .get();
+
+      final results = snapshot.docs
+          .map((doc) => UserModel.fromMap(doc.data()))
+          .where((user) => user.uid != excludeUid) // Exclude current user
+          .toList();
+
+      return results;
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error searching users', e, stackTrace);
+      return [];
+    }
+  }
 }
 
