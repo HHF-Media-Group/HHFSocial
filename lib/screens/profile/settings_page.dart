@@ -104,23 +104,29 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     if (confirmed == true && mounted) {
+      // Store navigator reference before async gap
+      final rootNav = Navigator.of(context, rootNavigator: true);
+
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (_) => const Center(
-          child: Card(
-            color: Color(0xFF2A2A2A),
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(color: Colors.red),
-                  SizedBox(height: 16),
-                  Text('Deleting account...', style: TextStyle(color: Colors.white)),
-                  SizedBox(height: 4),
-                  Text('This may take a moment', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                ],
+        builder: (_) => const PopScope(
+          canPop: false,
+          child: Center(
+            child: Card(
+              color: Color(0xFF2A2A2A),
+              child: Padding(
+                padding: EdgeInsets.all(32),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(color: Colors.red),
+                    SizedBox(height: 16),
+                    Text('Deleting account...', style: TextStyle(color: Colors.white)),
+                    SizedBox(height: 4),
+                    Text('This may take a moment', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  ],
+                ),
               ),
             ),
           ),
@@ -130,10 +136,16 @@ class _SettingsPageState extends State<SettingsPage> {
       try {
         final authService = context.read<AuthService>();
         await authService.deleteAccountPermanently();
-        // Auth state change will navigate to login automatically
+        // Dismiss the loading dialog and pop to root — AuthWrapper will show LoginPage
+        if (rootNav.mounted) {
+          rootNav.popUntil((route) => route.isFirst);
+        }
       } catch (e) {
+        // Dismiss loading dialog
+        if (rootNav.mounted) {
+          rootNav.pop();
+        }
         if (mounted) {
-          Navigator.pop(context); // dismiss loading
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Failed to delete account: $e'), backgroundColor: Colors.red),
           );
