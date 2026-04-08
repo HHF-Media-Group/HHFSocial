@@ -12,6 +12,7 @@ import '../post/create_post_page.dart';
 import '../post/post_detail_page.dart';
 import 'edit_profile_page.dart';
 import 'follow_list_page.dart';
+import 'settings_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -290,114 +291,21 @@ class ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  Future<void> _showDeleteAccountDialog() async {
-    final passwordController = TextEditingController();
-    String? errorText;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF2A2A2A),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          title: const Text('Delete Account', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'This action is permanent and cannot be undone. All your data including posts, messages, followers, and profile will be permanently deleted.',
-                style: TextStyle(color: Colors.grey, fontSize: 14),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'Enter your password to confirm:',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: passwordController,
-                obscureText: true,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'Password',
-                  hintStyle: TextStyle(color: Colors.grey[600]),
-                  filled: true,
-                  fillColor: const Color(0xFF1F1F1F),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.all(14),
-                  errorText: errorText,
-                  errorStyle: const TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel', style: TextStyle(color: Colors.grey, fontSize: 15)),
-            ),
-            TextButton(
-              onPressed: () async {
-                final password = passwordController.text.trim();
-                if (password.isEmpty) {
-                  setDialogState(() => errorText = 'Password is required');
-                  return;
-                }
-                try {
-                  final authService = context.read<AuthService>();
-                  final email = authService.currentUser?.email ?? '';
-                  await authService.reauthenticate(email, password);
-                  if (ctx.mounted) Navigator.pop(ctx, true);
-                } catch (e) {
-                  setDialogState(() => errorText = 'Incorrect password');
-                }
-              },
-              child: const Text('Delete Forever', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 15)),
-            ),
-          ],
-        ),
-      ),
+  Future<void> _openSettings() async {
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(builder: (_) => const SettingsPage()),
     );
-
-    if (confirmed == true && mounted) {
-      // Show loading overlay
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (_) => const Center(
-          child: Card(
-            color: Color(0xFF2A2A2A),
-            child: Padding(
-              padding: EdgeInsets.all(32),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CircularProgressIndicator(color: Colors.red),
-                  SizedBox(height: 16),
-                  Text('Deleting account...', style: TextStyle(color: Colors.white)),
-                ],
-              ),
-            ),
-          ),
+    // Handle navigation results from Settings
+    if (result == 'edit_profile' && _user != null && mounted) {
+      final updatedUser = await Navigator.push<UserModel>(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EditProfilePage(user: _user!),
         ),
       );
-
-      try {
-        final authService = context.read<AuthService>();
-        await authService.deleteAccountPermanently();
-        // Auth state change will navigate to login automatically
-      } catch (e) {
-        if (mounted) {
-          Navigator.pop(context); // dismiss loading
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to delete account: $e'), backgroundColor: Colors.red),
-          );
-        }
+      if (updatedUser != null && mounted) {
+        setState(() => _user = updatedUser);
       }
     }
   }
@@ -418,36 +326,15 @@ class ProfilePageState extends State<ProfilePage> {
         ),
         automaticallyImplyLeading: false,
         actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            color: const Color(0xFF2A2A2A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            onSelected: (value) {
-              if (value == 'logout') _showLogoutConfirmation();
-              if (value == 'delete') _showDeleteAccountDialog();
-            },
-            itemBuilder: (_) => [
-              const PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    Icon(Icons.logout, color: Colors.white70, size: 20),
-                    SizedBox(width: 12),
-                    Text('Log Out', style: TextStyle(color: Colors.white)),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete_forever, color: Colors.red, size: 20),
-                    SizedBox(width: 12),
-                    Text('Delete Account', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-              ),
-            ],
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            tooltip: 'Settings',
+            onPressed: _openSettings,
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout, color: Colors.white),
+            tooltip: 'Log out',
+            onPressed: _showLogoutConfirmation,
           ),
         ],
       ),
