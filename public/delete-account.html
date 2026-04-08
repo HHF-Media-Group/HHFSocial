@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Delete Account — HHF Social</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #1F1F1F;
+      color: #E0E0E0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 48px 16px;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: #2A2A2A;
+      border-radius: 16px;
+      padding: 36px 32px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+    .logo {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .logo h1 {
+      font-size: 28px;
+      color: #F29F05;
+      font-weight: 800;
+    }
+    h2 {
+      font-size: 22px;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+    .subtitle {
+      color: #aaa;
+      font-size: 14px;
+      margin-bottom: 28px;
+      line-height: 1.5;
+    }
+    .steps {
+      list-style: none;
+      counter-reset: step;
+      margin-bottom: 28px;
+    }
+    .steps li {
+      counter-increment: step;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      background: #1F1F1F;
+      border-radius: 12px;
+      font-size: 15px;
+      line-height: 1.5;
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .steps li::before {
+      content: counter(step);
+      background: #F29F05;
+      color: #1F1F1F;
+      font-weight: 700;
+      width: 28px;
+      height: 28px;
+      min-width: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .warning {
+      background: rgba(255, 59, 48, 0.1);
+      border: 1px solid rgba(255, 59, 48, 0.3);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+    .warning h3 {
+      color: #FF3B30;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+    .warning ul {
+      margin-left: 18px;
+      font-size: 13px;
+      color: #ccc;
+      line-height: 1.7;
+    }
+    .contact {
+      text-align: center;
+      font-size: 13px;
+      color: #888;
+      margin-top: 24px;
+      line-height: 1.6;
+    }
+    .contact a {
+      color: #F29F05;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo"><h1>HHF Social</h1></div>
+    <h2>How to Delete Your Account</h2>
+    <p class="subtitle">
+      You can permanently delete your HHF Social account directly from the app.
+      Follow the steps below:
+    </p>
+
+    <ol class="steps">
+      <li>Open the <strong>HHF Social</strong> app and log in to your account.</li>
+      <li>Go to your <strong>Profile</strong> tab (bottom right).</li>
+      <li>Tap the <strong>⋮ menu</strong> icon in the top right corner.</li>
+      <li>Select <strong>"Delete Account"</strong> from the menu.</li>
+      <li>Enter your password to confirm your identity.</li>
+      <li>Tap <strong>"Delete Forever"</strong> to permanently delete your account.</li>
+    </ol>
+
+    <div class="warning">
+      <h3>⚠️ What Gets Deleted</h3>
+      <ul>
+        <li>Your profile and personal information</li>
+        <li>All your posts, photos, and comments</li>
+        <li>Your direct messages and chat history</li>
+        <li>Your followers and following lists</li>
+        <li>Your notification history</li>
+      </ul>
+    </div>
+
+    <p class="subtitle" style="margin-bottom: 0;">
+      This action is <strong>permanent and irreversible</strong>. Once your account is deleted,
+      it cannot be recovered. Please make sure you want to proceed before confirming.
+    </p>
+
+    <p class="contact">
+      Need help? Contact us at <a href="mailto:support@hhfmediagrp.com">support@hhfmediagrp.com</a>
+    </p>
+  </div>
+</body>
+</html>
