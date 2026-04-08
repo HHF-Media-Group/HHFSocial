@@ -6,7 +6,10 @@ import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../services/post_service.dart';
 import '../../services/follow_service.dart';
+import '../../services/chat_service.dart';
+import '../../services/block_service.dart';
 import '../post/post_detail_page.dart';
+import '../chat/chat_detail_page.dart';
 import 'follow_list_page.dart';
 
 class UserProfilePage extends StatefulWidget {
@@ -119,6 +122,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
           icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onPressed: _showBlockReportMenu,
+          ),
+        ],
       ),
       body: _isLoading
           ? const Center(
@@ -209,66 +218,67 @@ class _UserProfilePageState extends State<UserProfilePage> {
                     ),
                   ),
 
-                  // Follow / Following Button
+                  // Follow / Following + Message Buttons
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: SizedBox(
-                      width: double.infinity,
-                      child: _isFollowing
-                          ? OutlinedButton(
-                              onPressed: _isFollowLoading ? null : _toggleFollow,
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                side: const BorderSide(color: Color(0xFF555555)),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                              child: _isFollowLoading
-                                  ? const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Following',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                      ),
+                    child: Row(
+                      children: [
+                        // Follow/Following button
+                        Expanded(
+                          child: _isFollowing
+                              ? OutlinedButton(
+                                  onPressed: _isFollowLoading ? null : _toggleFollow,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: const BorderSide(color: Color(0xFF555555)),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                            )
-                          : ElevatedButton(
-                              onPressed: _isFollowLoading ? null : _toggleFollow,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFF29F05),
-                                foregroundColor: Colors.black,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                              child: _isFollowLoading
-                                  ? const SizedBox(
-                                      height: 18,
-                                      width: 18,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.black,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'Follow',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                      ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: _isFollowLoading
+                                      ? const SizedBox(
+                                          height: 18, width: 18,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                        )
+                                      : const Text('Following', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                )
+                              : ElevatedButton(
+                                  onPressed: _isFollowLoading ? null : _toggleFollow,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFF29F05),
+                                    foregroundColor: Colors.black,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
+                                    padding: const EdgeInsets.symmetric(vertical: 10),
+                                  ),
+                                  child: _isFollowLoading
+                                      ? const SizedBox(
+                                          height: 18, width: 18,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black),
+                                        )
+                                      : const Text('Follow', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Message button
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: _openChat,
+                            icon: const Icon(Icons.chat_bubble_outline, size: 18),
+                            label: const Text('Message', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.white,
+                              side: const BorderSide(color: Color(0xFF555555)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 10),
                             ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
 
@@ -420,6 +430,192 @@ class _UserProfilePageState extends State<UserProfilePage> {
           uid: _user.uid,
           username: _user.username,
           listType: type,
+        ),
+      ),
+    );
+  }
+
+  void _openChat() async {
+    if (_currentUid == null) return;
+    if (_currentUid == _user.uid) return; // Can't message yourself
+
+    try {
+      // Check if blocked
+      final blockService = BlockService();
+      final blockedByOther = await blockService.isBlockedBy(_currentUid!, _user.uid);
+      if (blockedByOther && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Cannot message this user.'), backgroundColor: Colors.red),
+        );
+        return;
+      }
+
+      final chatService = ChatService();
+      final chatId = await chatService.getOrCreateChat(_currentUid!, _user.uid);
+
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ChatDetailPage(
+              chatId: chatId,
+              currentUid: _currentUid!,
+              otherUser: _user,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error opening chat: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _showBlockReportMenu() {
+    final blockService = BlockService();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF2A2A2A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+            ),
+            FutureBuilder<bool>(
+              future: blockService.isBlocked(_currentUid ?? '', _user.uid),
+              builder: (context, snapshot) {
+                final isBlocked = snapshot.data ?? false;
+                return ListTile(
+                  leading: Icon(
+                    isBlocked ? Icons.check_circle : Icons.block,
+                    color: isBlocked ? Colors.green : Colors.red,
+                  ),
+                  title: Text(
+                    isBlocked ? 'Unblock @${_user.username}' : 'Block @${_user.username}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    if (isBlocked) {
+                      _confirmUnblock(blockService);
+                    } else {
+                      _confirmBlock(blockService);
+                    }
+                  },
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.flag, color: Colors.orange),
+              title: const Text('Report User', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _showReportDialog(blockService);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _confirmBlock(BlockService blockService) {
+    if (_currentUid == null) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        content: Text(
+          'Block @${_user.username}? They won\'t be able to message you.',
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await blockService.blockUser(_currentUid!, _user.uid);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('User blocked'), backgroundColor: Colors.green),
+                );
+              }
+            },
+            child: const Text('Block', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmUnblock(BlockService blockService) {
+    if (_currentUid == null) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text('Unblock User', style: TextStyle(color: Colors.white)),
+        content: Text(
+          'Unblock @${_user.username}?',
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.grey))),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await blockService.unblockUser(_currentUid!, _user.uid);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('User unblocked'), backgroundColor: Colors.green),
+                );
+              }
+            },
+            child: const Text('Unblock', style: TextStyle(color: Color(0xFFF29F05))),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showReportDialog(BlockService blockService) {
+    if (_currentUid == null) return;
+    final reasons = ['Spam', 'Harassment', 'Inappropriate content', 'Fake account', 'Other'];
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text('Report User', style: TextStyle(color: Colors.white)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: reasons.map((reason) => ListTile(
+            title: Text(reason, style: const TextStyle(color: Colors.white)),
+            onTap: () async {
+              Navigator.pop(ctx);
+              await blockService.reportUser(
+                reporterUid: _currentUid!,
+                reportedUid: _user.uid,
+                reason: reason,
+              );
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Report submitted. Thank you.'), backgroundColor: Colors.green),
+                );
+              }
+            },
+          )).toList(),
         ),
       ),
     );

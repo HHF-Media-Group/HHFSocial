@@ -26,5 +26,13 @@ service firebase.storage {
                        || request.resource.contentType.matches('video/.*'));
       allow delete: if request.auth != null && request.auth.uid == userId;
     }
+    
+    // Chat Images: Users can read all, upload their own
+    match /chat_images/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId
+                   && request.resource.size < 10 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*');
+    }
   }
 }

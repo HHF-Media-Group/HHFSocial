@@ -11,9 +11,11 @@ import 'screens/profile/profile_page.dart';
 import 'screens/post/create_post_page.dart';
 import 'screens/search/search_page.dart';
 import 'screens/feed/feed_page.dart';
+import 'screens/chat/inbox_page.dart';
 import 'screens/notifications/notifications_page.dart';
 import 'models/post_model.dart';
 import 'services/notification_service.dart';
+import 'services/chat_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -117,7 +119,9 @@ class _HomePageState extends State<HomePage> {
   final GlobalKey<ProfilePageState> _profileKey = GlobalKey<ProfilePageState>();
   final GlobalKey<FeedPageState> _feedKey = GlobalKey<FeedPageState>();
   final GlobalKey<NotificationsPageState> _notifKey = GlobalKey<NotificationsPageState>();
+  final GlobalKey<InboxPageState> _inboxKey = GlobalKey<InboxPageState>();
   int _unreadCount = 0;
+  int _unreadMessages = 0;
 
   late final List<Widget> _pages;
 
@@ -128,10 +132,12 @@ class _HomePageState extends State<HomePage> {
       FeedPage(key: _feedKey),
       const SearchPage(),
       const SizedBox.shrink(), // Create placeholder
+      InboxPage(key: _inboxKey),
       NotificationsPage(key: _notifKey),
       ProfilePage(key: _profileKey),
     ];
     _refreshUnreadCount();
+    _refreshUnreadMessages();
   }
 
   void _refreshUnreadCount() async {
@@ -140,6 +146,14 @@ class _HomePageState extends State<HomePage> {
     if (uid == null) return;
     final count = await NotificationService().getUnreadCount(uid);
     if (mounted) setState(() => _unreadCount = count);
+  }
+
+  void _refreshUnreadMessages() async {
+    final authService = context.read<AuthService>();
+    final uid = authService.currentUser?.uid;
+    if (uid == null) return;
+    final count = await ChatService().getTotalUnreadCount(uid);
+    if (mounted) setState(() => _unreadMessages = count);
   }
 
   void _onTabTapped(int index) {
@@ -167,15 +181,20 @@ class _HomePageState extends State<HomePage> {
     if (index == 0) {
       _feedKey.currentState?.reload();
     } else if (index == 3) {
+      _inboxKey.currentState?.reload();
+      // Clear badge when viewing messages
+      setState(() => _unreadMessages = 0);
+    } else if (index == 4) {
       _notifKey.currentState?.reload();
       // Clear badge when viewing notifications
       setState(() => _unreadCount = 0);
-    } else if (index == 4) {
+    } else if (index == 5) {
       _profileKey.currentState?.reload();
     }
 
-    // Refresh unread count on every tab switch
-    if (index != 3) _refreshUnreadCount();
+    // Refresh badges on every tab switch
+    if (index != 4) _refreshUnreadCount();
+    if (index != 3) _refreshUnreadMessages();
 
     setState(() {
       _currentIndex = index;
@@ -219,6 +238,36 @@ class _HomePageState extends State<HomePage> {
               icon: Icon(Icons.add_box_outlined, size: 28),
               activeIcon: Icon(Icons.add_box, size: 28),
               label: 'Create',
+            ),
+            BottomNavigationBarItem(
+              icon: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Icon(Icons.chat_bubble_outline, size: 26),
+                  if (_unreadMessages > 0)
+                    Positioned(
+                      right: -6,
+                      top: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF29F05),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          _unreadMessages > 9 ? '9+' : '$_unreadMessages',
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              activeIcon: const Icon(Icons.chat_bubble, size: 26),
+              label: 'Messages',
             ),
             BottomNavigationBarItem(
               icon: Stack(
