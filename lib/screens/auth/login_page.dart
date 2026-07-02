@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../legal/terms_page.dart';
 import 'signup_page.dart';
 
 import '../../utils/auth_exception_handler.dart';
@@ -161,7 +162,10 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          // Extra bottom padding keeps content clear of the system
+          // navigation bar on edge-to-edge Android
+          padding: EdgeInsets.fromLTRB(
+              24, 24, 24, 24 + MediaQuery.paddingOf(context).bottom),
           child: Form(
             key: _formKey,
             child: Column(
@@ -291,6 +295,33 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                   ],
+                ),
+                const SizedBox(height: 16),
+
+                // Terms of Use (EULA) notice
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const TermsPage()),
+                    );
+                  },
+                  child: Text.rich(
+                    TextSpan(
+                      text: 'By signing in you agree to our ',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      children: const [
+                        TextSpan(
+                          text: 'Terms of Use (EULA)',
+                          style: TextStyle(
+                            color: Color(0xFFF29F05),
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ],
             ),

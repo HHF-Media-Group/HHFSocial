@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart';
 import '../../services/database_service.dart';
 import '../../models/user_model.dart';
 import '../../utils/validators.dart';
+import '../legal/terms_page.dart';
 
 import '../../utils/auth_exception_handler.dart';
 
@@ -27,6 +30,7 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _agreedToTerms = false;
   String? _errorMessage;
 
   Future<void> _selectDate(BuildContext context) async {
@@ -65,6 +69,15 @@ class _SignUpPageState extends State<SignUpPage> {
       if (_selectedDate == null) {
         setState(() {
           _errorMessage = "Please select your birth date";
+        });
+        return;
+      }
+
+      // Terms of Use (EULA) agreement is required
+      if (!_agreedToTerms) {
+        setState(() {
+          _errorMessage =
+              "You must agree to the Terms of Use (EULA) to create an account.";
         });
         return;
       }
@@ -131,6 +144,7 @@ class _SignUpPageState extends State<SignUpPage> {
             fullName: _fullNameController.text.trim(),
             birthDate: _selectedDate!,
             createdAt: DateTime.now(),
+            termsAcceptedAt: DateTime.now(),
           );
 
           print('DEBUG SIGNUP: Step 4 - Saving to Firestore');
@@ -200,10 +214,14 @@ class _SignUpPageState extends State<SignUpPage> {
         title: const Text('Create Account'),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
       ),
       body: Center(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          // Extra bottom padding keeps the button clear of the system
+          // navigation bar on edge-to-edge Android
+          padding: EdgeInsets.fromLTRB(
+              24, 24, 24, 24 + MediaQuery.paddingOf(context).bottom),
           child: Form(
             key: _formKey,
             child: Column(
@@ -332,7 +350,88 @@ class _SignUpPageState extends State<SignUpPage> {
                   validator: (value) =>
                       value!.isEmpty ? 'Please select your birth date' : null,
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 24),
+
+                // Terms of Use (EULA) agreement
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: Checkbox(
+                        value: _agreedToTerms,
+                        activeColor: const Color(0xFFF29F05),
+                        checkColor: Colors.black,
+                        side: BorderSide(color: Colors.grey[500]!),
+                        onChanged: (value) {
+                          setState(() => _agreedToTerms = value ?? false);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text.rich(
+                        TextSpan(
+                          text: 'I agree to the ',
+                          style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                          recognizer: TapGestureRecognizer()
+                            ..onTap = () =>
+                                setState(() => _agreedToTerms = !_agreedToTerms),
+                          children: [
+                            TextSpan(
+                              text: 'Terms of Use (EULA)',
+                              style: const TextStyle(
+                                color: Color(0xFFF29F05),
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (_) => const TermsPage()),
+                                  );
+                                },
+                            ),
+                            TextSpan(
+                              text: ' and ',
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => setState(
+                                    () => _agreedToTerms = !_agreedToTerms),
+                            ),
+                            TextSpan(
+                              text: 'Privacy Policy',
+                              style: const TextStyle(
+                                color: Color(0xFFF29F05),
+                                fontWeight: FontWeight.w600,
+                                decoration: TextDecoration.underline,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () async {
+                                  final uri = Uri.parse(
+                                      'https://hhf-social.web.app/privacy-policy.html');
+                                  if (await canLaunchUrl(uri)) {
+                                    await launchUrl(uri,
+                                        mode: LaunchMode.externalApplication);
+                                  }
+                                },
+                            ),
+                            TextSpan(
+                              text:
+                                  '. I understand there is zero tolerance for objectionable content or abusive users.',
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => setState(
+                                    () => _agreedToTerms = !_agreedToTerms),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
 
                 // Sign Up Button
                 ElevatedButton(

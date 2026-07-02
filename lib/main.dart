@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,7 +7,9 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
+import 'services/database_service.dart';
 import 'screens/auth/login_page.dart';
+import 'screens/legal/terms_page.dart';
 import 'screens/profile/profile_page.dart';
 import 'screens/post/create_post_page.dart';
 import 'screens/search/search_page.dart';
@@ -76,7 +79,7 @@ class HHFSocialApp extends StatelessWidget {
               backgroundColor: const Color(0xFFF29F05),
               foregroundColor: Colors.black,
               textStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -101,9 +104,71 @@ class AuthWrapper extends StatelessWidget {
     final firebaseUser = context.watch<User?>();
 
     if (firebaseUser != null && firebaseUser.emailVerified) {
-      return const HomePage();
+      return TermsGate(uid: firebaseUser.uid, child: const HomePage());
     }
     return const LoginPage();
+  }
+}
+
+/// Blocks access to the app until the user has accepted the Terms of Use
+/// (EULA). Covers accounts created before terms acceptance was added at
+/// signup — required by App Store Guideline 1.2.
+class TermsGate extends StatefulWidget {
+  final String uid;
+  final Widget child;
+
+  const TermsGate({super.key, required this.uid, required this.child});
+
+  @override
+  State<TermsGate> createState() => _TermsGateState();
+}
+
+class _TermsGateState extends State<TermsGate> {
+  bool _isLoading = true;
+  bool _accepted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAcceptance();
+  }
+
+  Future<void> _checkAcceptance() async {
+    final user = await DatabaseService().getUser(widget.uid);
+    if (mounted) {
+      setState(() {
+        // If the user doc is missing, don't lock the account out —
+        // acceptance was already required at signup.
+        _accepted = user == null || user.termsAcceptedAt != null;
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _accept() async {
+    await DatabaseService().updateUserProfile(widget.uid, {
+      'termsAcceptedAt': Timestamp.now(),
+    });
+    if (mounted) setState(() => _accepted = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+        ),
+      );
+    }
+    if (!_accepted) {
+      return TermsPage(
+        requireAcceptance: true,
+        onAccepted: _accept,
+        onDeclined: () => context.read<AuthService>().signOut(),
+      );
+    }
+    return widget.child;
   }
 }
 

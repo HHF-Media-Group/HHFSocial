@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/block_service.dart';
 import '../../services/database_service.dart';
 import '../profile/user_profile_page.dart';
 
@@ -54,10 +55,18 @@ class _SearchPageState extends State<SearchPage> {
     final authService = context.read<AuthService>();
     final currentUid = authService.currentUser?.uid;
 
-    final results = await _databaseService.searchUsers(
+    var results = await _databaseService.searchUsers(
       query,
       excludeUid: currentUid,
     );
+
+    // Filter out users the searcher has blocked
+    if (currentUid != null && results.isNotEmpty) {
+      final blockedUids =
+          (await BlockService().getBlockedUsers(currentUid)).toSet();
+      results =
+          results.where((user) => !blockedUids.contains(user.uid)).toList();
+    }
 
     if (mounted) {
       setState(() {

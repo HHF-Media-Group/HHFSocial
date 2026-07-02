@@ -13,6 +13,7 @@ class UserModel {
   final int followersCount;
   final int followingCount;
   final int unreadMessages;
+  final DateTime? termsAcceptedAt;
 
   UserModel({
     required this.uid,
@@ -27,6 +28,7 @@ class UserModel {
     this.followersCount = 0,
     this.followingCount = 0,
     this.unreadMessages = 0,
+    this.termsAcceptedAt,
   });
 
   Map<String, dynamic> toMap() {
@@ -43,6 +45,8 @@ class UserModel {
       'followersCount': followersCount,
       'followingCount': followingCount,
       'unreadMessages': unreadMessages,
+      'termsAcceptedAt':
+          termsAcceptedAt != null ? Timestamp.fromDate(termsAcceptedAt!) : null,
     };
   }
 
@@ -73,6 +77,9 @@ class UserModel {
       followersCount: map['followersCount'] ?? 0,
       followingCount: map['followingCount'] ?? 0,
       unreadMessages: map['unreadMessages'] ?? 0,
+      termsAcceptedAt: map['termsAcceptedAt'] is Timestamp
+          ? (map['termsAcceptedAt'] as Timestamp).toDate()
+          : null,
     );
   }
 
@@ -91,6 +98,7 @@ class UserModel {
     int? followersCount,
     int? followingCount,
     int? unreadMessages,
+    DateTime? termsAcceptedAt,
     bool clearProfilePicture = false,
     bool clearBio = false,
     bool clearWebsite = false,
@@ -108,6 +116,7 @@ class UserModel {
       followersCount: followersCount ?? this.followersCount,
       followingCount: followingCount ?? this.followingCount,
       unreadMessages: unreadMessages ?? this.unreadMessages,
+      termsAcceptedAt: termsAcceptedAt ?? this.termsAcceptedAt,
     );
   }
 }

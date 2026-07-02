@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart';
+import '../legal/terms_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -268,7 +269,7 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildTile(
             icon: Icons.info_outline,
             title: 'App Version',
-            subtitle: '1.0.1',
+            subtitle: '1.0.2',
             showChevron: false,
           ),
           _buildTile(
@@ -279,6 +280,16 @@ class _SettingsPageState extends State<SettingsPage> {
               if (await canLaunchUrl(uri)) {
                 await launchUrl(uri, mode: LaunchMode.externalApplication);
               }
+            },
+          ),
+          _buildTile(
+            icon: Icons.gavel_outlined,
+            title: 'Terms of Use (EULA)',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TermsPage()),
+              );
             },
           ),
 

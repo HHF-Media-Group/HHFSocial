@@ -5,9 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/post_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/block_service.dart';
 import '../../services/post_service.dart';
 import '../../services/storage_service.dart';
 import '../../services/like_service.dart';
+import '../../widgets/report_content_sheet.dart';
 import 'comments_sheet.dart';
 
 class PostDetailPage extends StatefulWidget {
@@ -280,6 +282,129 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
   }
 
+  void _showOptionsMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF2A2A2A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.flag, color: Colors.orange),
+              title: const Text('Report Post', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _reportPost();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block, color: Colors.red),
+              title: Text('Block @${widget.username}', style: const TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _confirmBlock();
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _reportPost() async {
+    final uid = widget.currentUid.isNotEmpty
+        ? widget.currentUid
+        : context.read<AuthService>().currentUser?.uid;
+    if (uid == null || uid.isEmpty) return;
+
+    final reason = await ReportContentSheet.show(context, title: 'Report Post');
+    if (reason == null || !mounted) return;
+
+    final blockService = BlockService();
+    try {
+      await blockService.reportPost(
+        reporterUid: uid,
+        reportedUid: widget.post.uid,
+        postId: widget.post.postId,
+        reason: reason,
+      );
+      await blockService.hidePost(uid, widget.post.postId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Report received — removed from your feed. We review reports within 24 hours.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Return to previous screen; 'reported' lets the feed remove it instantly
+        Navigator.pop(context, 'reported');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit report: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _confirmBlock() {
+    final uid = widget.currentUid.isNotEmpty
+        ? widget.currentUid
+        : context.read<AuthService>().currentUser?.uid;
+    if (uid == null || uid.isEmpty) return;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        content: Text(
+          'Block @${widget.username}? Their content will be removed from your feed and they won\'t be able to message you.',
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await BlockService().blockUser(uid, widget.post.uid);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('User blocked'), backgroundColor: Colors.green),
+                  );
+                  Navigator.pop(context, 'blocked');
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to block user: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: const Text('Block', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final isOwner = widget.post.uid == widget.currentUid;
@@ -304,6 +429,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
               onPressed: () => _deletePost(context),
+            )
+          else
+            IconButton(
+              icon: const Icon(Icons.more_vert, color: Colors.white),
+              onPressed: _showOptionsMenu,
             ),
         ],
       ),

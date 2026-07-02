@@ -4,10 +4,12 @@ import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../models/post_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/block_service.dart';
 import '../../services/database_service.dart';
 import '../../services/post_service.dart';
 import '../../services/follow_service.dart';
 import '../../services/like_service.dart';
+import '../../widgets/report_content_sheet.dart';
 import '../post/post_detail_page.dart';
 import '../post/comments_sheet.dart';
 import '../profile/user_profile_page.dart';
@@ -24,9 +26,12 @@ class FeedPageState extends State<FeedPage> {
   final FollowService _followService = FollowService();
   final DatabaseService _databaseService = DatabaseService();
   final LikeService _likeService = LikeService();
+  final BlockService _blockService = BlockService();
   final ScrollController _scrollController = ScrollController();
 
   List<PostModel> _posts = [];
+  Set<String> _blockedUids = {};
+  Set<String> _hiddenPostIds = {};
   Map<String, UserModel> _userCache = {};
   Map<String, bool> _likedPosts = {};
   Map<String, int> _likeCounts = {};
@@ -80,6 +85,8 @@ class FeedPageState extends State<FeedPage> {
     });
 
     _followingUids = await _followService.getFollowing(_currentUid!);
+    _blockedUids = (await _blockService.getBlockedUsers(_currentUid!)).toSet();
+    _hiddenPostIds = await _blockService.getHiddenPostIds(_currentUid!);
 
     // First page: followed first, then discovery
     final result = await _postService.getPaginatedPosts(
@@ -139,6 +146,15 @@ class FeedPageState extends State<FeedPage> {
   /// Fetches user data, like status, and counts for a list of posts.
   /// If [replace] is true, replaces the entire feed; otherwise appends.
   Future<void> _hydratePostData(List<PostModel> posts, {required bool replace}) async {
+    // Filter out content from blocked users and posts the user has
+    // reported/hidden. Single choke point for both initial load and
+    // pagination (App Store Guideline 1.2).
+    posts = posts
+        .where((p) =>
+            !_blockedUids.contains(p.uid) &&
+            !_hiddenPostIds.contains(p.postId))
+        .toList();
+
     final uniqueUids = posts.map((p) => p.uid).toSet().toList();
     final users = await _databaseService.getUsersByIds(uniqueUids);
     final userMap = {for (var u in users) u.uid: u};
@@ -224,6 +240,126 @@ class FeedPageState extends State<FeedPage> {
     return '${(diff.inDays / 365).floor()}y';
   }
 
+  void _showPostOptions(PostModel post, UserModel? user) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF2A2A2A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40, height: 4,
+              margin: const EdgeInsets.only(top: 12, bottom: 16),
+              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+            ),
+            ListTile(
+              leading: const Icon(Icons.flag, color: Colors.orange),
+              title: const Text('Report Post', style: TextStyle(color: Colors.white)),
+              onTap: () {
+                Navigator.pop(ctx);
+                _reportPost(post);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.block, color: Colors.red),
+              title: Text(
+                'Block @${user?.username ?? 'user'}',
+                style: const TextStyle(color: Colors.white),
+              ),
+              onTap: () {
+                Navigator.pop(ctx);
+                _confirmBlockUser(post, user);
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _reportPost(PostModel post) async {
+    if (_currentUid == null) return;
+    final reason = await ReportContentSheet.show(context, title: 'Report Post');
+    if (reason == null) return;
+
+    try {
+      await _blockService.reportPost(
+        reporterUid: _currentUid!,
+        reportedUid: post.uid,
+        postId: post.postId,
+        reason: reason,
+      );
+      // Hide instantly and persist so it stays hidden across sessions
+      await _blockService.hidePost(_currentUid!, post.postId);
+      _hiddenPostIds.add(post.postId);
+      if (mounted) {
+        setState(() => _posts.removeWhere((p) => p.postId == post.postId));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Report received — removed from your feed. We review reports within 24 hours.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit report: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _confirmBlockUser(PostModel post, UserModel? user) {
+    if (_currentUid == null) return;
+    final username = user?.username ?? 'this user';
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        content: Text(
+          'Block @$username? Their content will be removed from your feed and they won\'t be able to message you.',
+          style: const TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              try {
+                await _blockService.blockUser(_currentUid!, post.uid);
+                _blockedUids.add(post.uid);
+                if (mounted) {
+                  setState(() => _posts.removeWhere((p) => p.uid == post.uid));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('User blocked'), backgroundColor: Colors.green),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Failed to block user: $e'), backgroundColor: Colors.red),
+                  );
+                }
+              }
+            },
+            child: const Text('Block', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _navigateToUserProfile(UserModel user) {
     Navigator.push(
       context,
@@ -231,8 +367,8 @@ class FeedPageState extends State<FeedPage> {
     );
   }
 
-  void _navigateToPostDetail(PostModel post, UserModel? user) {
-    Navigator.push(
+  void _navigateToPostDetail(PostModel post, UserModel? user) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => PostDetailPage(
@@ -243,6 +379,17 @@ class FeedPageState extends State<FeedPage> {
         ),
       ),
     );
+
+    // Post was reported or its author blocked from the detail page —
+    // remove the content from the feed instantly
+    if (!mounted) return;
+    if (result == 'reported') {
+      _hiddenPostIds.add(post.postId);
+      setState(() => _posts.removeWhere((p) => p.postId == post.postId));
+    } else if (result == 'blocked') {
+      _blockedUids.add(post.uid);
+      setState(() => _posts.removeWhere((p) => p.uid == post.uid));
+    }
   }
 
   @override
@@ -490,6 +637,15 @@ class FeedPageState extends State<FeedPage> {
                           fontSize: 12,
                         ),
                       ),
+                      if (post.uid != _currentUid)
+                        GestureDetector(
+                          onTap: () => _showPostOptions(post, user),
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Icon(Icons.more_vert,
+                                color: Colors.grey[500], size: 20),
+                          ),
+                        ),
                     ],
                   ),
                 ),

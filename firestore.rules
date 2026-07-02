@@ -35,6 +35,12 @@ service cloud.firestore {
         allow create, delete: if request.auth != null
                               && request.auth.uid == userId;
       }
+
+      // Hidden Posts subcollection - posts the owner reported/hid from their feed
+      match /hiddenPosts/{postId} {
+        allow read, create, delete: if request.auth != null
+                                    && request.auth.uid == userId;
+      }
     }
     
     // Usernames collection - for username uniqueness checks

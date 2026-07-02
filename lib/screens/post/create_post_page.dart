@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import '../../models/post_model.dart';
 import '../../services/post_service.dart';
 import '../../services/storage_service.dart';
+import '../../utils/content_filter.dart';
 
 class CreatePostPage extends StatefulWidget {
   final String uid;
@@ -210,6 +211,17 @@ class _CreatePostPageState extends State<CreatePostPage> {
 
   Future<void> _sharePost() async {
     if (_selectedImage == null && _selectedVideo == null) return;
+
+    // Objectionable-content filter on the caption (App Store Guideline 1.2)
+    if (ContentFilter.containsObjectionableContent(_captionController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This caption violates our community guidelines.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isPosting = true;

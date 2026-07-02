@@ -16,6 +16,20 @@ class BlockService {
         'blockedUid': blockedUid,
         'blockedAt': Timestamp.now(),
       });
+
+      // Also file a report so the developer is notified of the block
+      // (App Store Guideline 1.2). Best-effort — never fail the block itself.
+      try {
+        await _firestore.collection('reports').add({
+          'reporterUid': currentUid,
+          'reportedUid': blockedUid,
+          'reason': 'User blocked',
+          'type': 'block',
+          'createdAt': Timestamp.now(),
+        });
+      } catch (e, stackTrace) {
+        LoggerService.logError('Error filing block report', e, stackTrace);
+      }
     } catch (e, stackTrace) {
       LoggerService.logError('Error blocking user', e, stackTrace);
       rethrow;
@@ -101,6 +115,85 @@ class BlockService {
     } catch (e, stackTrace) {
       LoggerService.logError('Error reporting user', e, stackTrace);
       rethrow;
+    }
+  }
+
+  /// Report a post
+  Future<void> reportPost({
+    required String reporterUid,
+    required String reportedUid,
+    required String postId,
+    required String reason,
+  }) async {
+    try {
+      await _firestore.collection('reports').add({
+        'reporterUid': reporterUid,
+        'reportedUid': reportedUid,
+        'postId': postId,
+        'reason': reason,
+        'type': 'post',
+        'createdAt': Timestamp.now(),
+      });
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error reporting post', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Report a comment
+  Future<void> reportComment({
+    required String reporterUid,
+    required String reportedUid,
+    required String postId,
+    required String commentId,
+    required String reason,
+  }) async {
+    try {
+      await _firestore.collection('reports').add({
+        'reporterUid': reporterUid,
+        'reportedUid': reportedUid,
+        'postId': postId,
+        'commentId': commentId,
+        'reason': reason,
+        'type': 'comment',
+        'createdAt': Timestamp.now(),
+      });
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error reporting comment', e, stackTrace);
+      rethrow;
+    }
+  }
+
+  /// Hide a post for the current user (persisted, used after reporting)
+  Future<void> hidePost(String uid, String postId) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('hiddenPosts')
+          .doc(postId)
+          .set({
+        'postId': postId,
+        'hiddenAt': Timestamp.now(),
+      });
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error hiding post', e, stackTrace);
+      // Non-critical — the post is already removed locally
+    }
+  }
+
+  /// Get IDs of posts the user has hidden (reported)
+  Future<Set<String>> getHiddenPostIds(String uid) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('hiddenPosts')
+          .get();
+      return snapshot.docs.map((doc) => doc.id).toSet();
+    } catch (e, stackTrace) {
+      LoggerService.logError('Error getting hidden posts', e, stackTrace);
+      return {};
     }
   }
 

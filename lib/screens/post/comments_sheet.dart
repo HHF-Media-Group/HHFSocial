@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/comment_model.dart';
 import '../../services/auth_service.dart';
+import '../../services/block_service.dart';
 import '../../services/comment_service.dart';
 import '../../services/database_service.dart';
 import '../../models/user_model.dart';
+import '../../utils/content_filter.dart';
+import '../../widgets/report_content_sheet.dart';
 
 class CommentsSheet extends StatefulWidget {
   final String postId;
@@ -29,10 +32,12 @@ class CommentsSheet extends StatefulWidget {
 class _CommentsSheetState extends State<CommentsSheet> {
   final CommentService _commentService = CommentService();
   final DatabaseService _databaseService = DatabaseService();
+  final BlockService _blockService = BlockService();
   final TextEditingController _textController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
 
   List<CommentModel> _comments = [];
+  Set<String> _blockedUids = {};
   bool _isLoading = true;
   bool _isSending = false;
   UserModel? _currentUser;
@@ -61,10 +66,17 @@ class _CommentsSheetState extends State<CommentsSheet> {
   }
 
   Future<void> _loadComments() async {
+    // Filter out comments from users the viewer has blocked
+    final uid = context.read<AuthService>().currentUser?.uid;
+    if (uid != null) {
+      _blockedUids = (await _blockService.getBlockedUsers(uid)).toSet();
+    }
+
     final comments = await _commentService.getComments(widget.postId);
     if (mounted) {
       setState(() {
-        _comments = comments;
+        _comments =
+            comments.where((c) => !_blockedUids.contains(c.uid)).toList();
         _isLoading = false;
       });
     }
@@ -73,6 +85,17 @@ class _CommentsSheetState extends State<CommentsSheet> {
   Future<void> _sendComment() async {
     final text = _textController.text.trim();
     if (text.isEmpty || _currentUser == null) return;
+
+    // Objectionable-content filter (App Store Guideline 1.2)
+    if (ContentFilter.containsObjectionableContent(text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This content violates our community guidelines.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isSending = true);
 
@@ -141,6 +164,44 @@ class _CommentsSheetState extends State<CommentsSheet> {
             SnackBar(content: Text('Failed to delete: $e'), backgroundColor: Colors.red),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _reportComment(CommentModel comment) async {
+    final uid = _currentUser?.uid ?? context.read<AuthService>().currentUser?.uid;
+    if (uid == null) return;
+
+    final reason =
+        await ReportContentSheet.show(context, title: 'Report Comment');
+    if (reason == null || !mounted) return;
+
+    try {
+      await _blockService.reportComment(
+        reporterUid: uid,
+        reportedUid: comment.uid,
+        postId: widget.postId,
+        commentId: comment.commentId,
+        reason: reason,
+      );
+      if (mounted) {
+        // Remove the reported comment from view instantly
+        setState(() {
+          _comments.removeWhere((c) => c.commentId == comment.commentId);
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Report received. We review reports within 24 hours.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to submit report: $e'), backgroundColor: Colors.red),
+        );
       }
     }
   }
@@ -365,13 +426,22 @@ class _CommentsSheetState extends State<CommentsSheet> {
               ],
             ),
           ),
-          // Delete button for own comments
+          // Delete button for own comments, flag for others'
           if (isOwn)
             GestureDetector(
               onTap: () => _deleteComment(comment),
               child: Padding(
                 padding: const EdgeInsets.only(left: 8, top: 2),
                 child: Icon(Icons.close, size: 14, color: Colors.grey[600]),
+              ),
+            )
+          else
+            GestureDetector(
+              onTap: () => _reportComment(comment),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8, top: 2),
+                child: Icon(Icons.flag_outlined,
+                    size: 14, color: Colors.grey[600]),
               ),
             ),
         ],
