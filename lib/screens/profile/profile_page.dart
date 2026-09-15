@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
@@ -489,22 +490,28 @@ class ProfilePageState extends State<ProfilePage> {
                               ),
                             ),
                           ],
-                          if (_user?.website != null && _user!.website!.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Row(
+                          const SizedBox(height: 4),
+                          GestureDetector(
+                            onTap: () => launchUrl(
+                              Uri.parse('https://hhfmedia.com'),
+                              mode: LaunchMode.externalApplication,
+                            ),
+                            child: const Row(
                               children: [
-                                const Icon(Icons.link, color: Color(0xFFF29F05), size: 14),
-                                const SizedBox(width: 4),
+                                Icon(Icons.link, color: Color(0xFFF29F05), size: 14),
+                                SizedBox(width: 4),
                                 Text(
-                                  _user!.website!,
-                                  style: const TextStyle(
+                                  'hhfmedia.com',
+                                  style: TextStyle(
                                     color: Color(0xFFF29F05),
                                     fontSize: 14,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: Color(0xFFF29F05),
                                   ),
                                 ),
                               ],
                             ),
-                          ],
+                          ),
                         ],
                       ),
                     ),

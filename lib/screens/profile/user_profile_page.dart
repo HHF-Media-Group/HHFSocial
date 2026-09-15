@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../models/post_model.dart';
@@ -203,17 +204,30 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               ),
                             ),
                           ),
-                        if (user.website != null && user.website!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text(
-                              user.website!,
-                              style: const TextStyle(
-                                color: Color(0xFF5B9BD5),
-                                fontSize: 14,
-                              ),
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: GestureDetector(
+                            onTap: () => launchUrl(
+                              Uri.parse('https://hhfmedia.com'),
+                              mode: LaunchMode.externalApplication,
+                            ),
+                            child: const Row(
+                              children: [
+                                Icon(Icons.link, color: Color(0xFFF29F05), size: 14),
+                                SizedBox(width: 4),
+                                Text(
+                                  'hhfmedia.com',
+                                  style: TextStyle(
+                                    color: Color(0xFFF29F05),
+                                    fontSize: 14,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: Color(0xFFF29F05),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
+                        ),
                       ],
                     ),
                   ),

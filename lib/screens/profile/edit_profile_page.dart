@@ -18,7 +18,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController _fullNameController;
   late TextEditingController _usernameController;
   late TextEditingController _bioController;
-  late TextEditingController _websiteController;
+
 
   final DatabaseService _databaseService = DatabaseService();
 
@@ -37,13 +37,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _fullNameController = TextEditingController(text: widget.user.fullName);
     _usernameController = TextEditingController(text: widget.user.username);
     _bioController = TextEditingController(text: widget.user.bio ?? '');
-    _websiteController = TextEditingController(text: widget.user.website ?? '');
+
 
     // Listen for changes
     _fullNameController.addListener(_onFieldChanged);
     _usernameController.addListener(_onUsernameChanged);
     _bioController.addListener(_onFieldChanged);
-    _websiteController.addListener(_onFieldChanged);
+
   }
 
   @override
@@ -52,15 +52,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _fullNameController.dispose();
     _usernameController.dispose();
     _bioController.dispose();
-    _websiteController.dispose();
+
     super.dispose();
   }
 
   void _onFieldChanged() {
     final hasChanges = _fullNameController.text.trim() != widget.user.fullName ||
         _usernameController.text.trim().toLowerCase() != widget.user.username.toLowerCase() ||
-        (_bioController.text.trim()) != (widget.user.bio ?? '') ||
-        (_websiteController.text.trim()) != (widget.user.website ?? '');
+        (_bioController.text.trim()) != (widget.user.bio ?? '');
     
     if (hasChanges != _hasChanges) {
       setState(() {
@@ -206,17 +205,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         updates['bio'] = newBio.isEmpty ? null : newBio;
       }
 
-      String newWebsite = _websiteController.text.trim();
-      // Auto-prepend https:// if user typed a URL without protocol
-      if (newWebsite.isNotEmpty &&
-          !newWebsite.startsWith('http://') &&
-          !newWebsite.startsWith('https://')) {
-        newWebsite = 'https://$newWebsite';
-      }
-      if (newWebsite != (widget.user.website ?? '')) {
-        updates['website'] = newWebsite.isEmpty ? null : newWebsite;
-      }
-
       // 3. Save field updates
       if (updates.isNotEmpty) {
         await _databaseService.updateUserProfile(widget.user.uid, updates);
@@ -227,9 +215,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         username: usernameChanged ? newUsername : null,
         fullName: newFullName != widget.user.fullName ? newFullName : null,
         bio: newBio.isNotEmpty ? newBio : null,
-        website: newWebsite.isNotEmpty ? newWebsite : null,
         clearBio: newBio.isEmpty && widget.user.bio != null,
-        clearWebsite: newWebsite.isEmpty && widget.user.website != null,
       );
 
       if (mounted) {
@@ -390,16 +376,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     maxLength: 150,
                     hintText: 'Tell the world about yourself ✨',
                   ),
-                  const SizedBox(height: 20),
 
-                  // Website
-                  _buildTextField(
-                    label: 'Website',
-                    controller: _websiteController,
-                    validator: Validators.validateWebsite,
-                    keyboardType: TextInputType.url,
-                    hintText: 'https://yourwebsite.com',
-                  ),
 
                   const SizedBox(height: 32),
                 ],
