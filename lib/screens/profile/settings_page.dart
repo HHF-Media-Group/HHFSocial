@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/auth_service.dart';
@@ -26,7 +27,7 @@ class _SettingsPageState extends State<SettingsPage> {
       barrierDismissible: false,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setDialogState) => AlertDialog(
-          backgroundColor: const Color(0xFF2A2A2A),
+          backgroundColor: AppColors.surfaceElevated,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Row(
             children: [
@@ -52,18 +53,18 @@ class _SettingsPageState extends State<SettingsPage> {
                 const SizedBox(height: 20),
                 const Text(
                   'Enter your password to confirm:',
-                  style: TextStyle(color: Colors.white70, fontSize: 13),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: passwordController,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(color: AppColors.textPrimary),
                   decoration: InputDecoration(
                     hintText: 'Password',
-                    hintStyle: TextStyle(color: Colors.grey[600]),
+                    hintStyle: TextStyle(color: AppColors.textSecondary),
                     filled: true,
-                    fillColor: const Color(0xFF1F1F1F),
+                    fillColor: AppColors.background,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide.none,
@@ -115,7 +116,7 @@ class _SettingsPageState extends State<SettingsPage> {
           canPop: false,
           child: Center(
             child: Card(
-              color: Color(0xFF2A2A2A),
+              color: AppColors.surfaceElevated,
               child: Padding(
                 padding: EdgeInsets.all(32),
                 child: Column(
@@ -123,7 +124,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   children: [
                     CircularProgressIndicator(color: Colors.red),
                     SizedBox(height: 16),
-                    Text('Deleting account...', style: TextStyle(color: Colors.white)),
+                    Text('Deleting account...', style: TextStyle(color: AppColors.textPrimary)),
                     SizedBox(height: 4),
                     Text('This may take a moment', style: TextStyle(color: Colors.grey, fontSize: 12)),
                   ],
@@ -177,17 +178,17 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: AppColors.iconAppBar, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Settings',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 20),
         ),
       ),
       body: ListView(
@@ -212,12 +213,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
-                      backgroundColor: const Color(0xFF2A2A2A),
+                      backgroundColor: AppColors.surfaceElevated,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       title: const Text('Error', style: TextStyle(color: Colors.red)),
                       content: const Text('Could not find your email address.', style: TextStyle(color: Colors.grey)),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK', style: TextStyle(color: Color(0xFFF29F05)))),
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK', style: TextStyle(color: AppColors.primary))),
                       ],
                     ),
                   );
@@ -230,15 +231,15 @@ class _SettingsPageState extends State<SettingsPage> {
                   showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
-                      backgroundColor: const Color(0xFF2A2A2A),
+                      backgroundColor: AppColors.surfaceElevated,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      title: const Text('Email Sent ✓', style: TextStyle(color: Colors.white)),
+                      title: const Text('Email Sent ✓', style: TextStyle(color: AppColors.textPrimary)),
                       content: Text(
                         'A password reset link has been sent to:\n$email\n\nCheck your inbox (and spam folder) and follow the link to update your password.',
                         style: const TextStyle(color: Colors.grey, height: 1.5),
                       ),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK', style: TextStyle(color: Color(0xFFF29F05), fontWeight: FontWeight.bold))),
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold))),
                       ],
                     ),
                   );
@@ -248,12 +249,12 @@ class _SettingsPageState extends State<SettingsPage> {
                   showDialog(
                     context: context,
                     builder: (_) => AlertDialog(
-                      backgroundColor: const Color(0xFF2A2A2A),
+                      backgroundColor: AppColors.surfaceElevated,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       title: const Text('Error', style: TextStyle(color: Colors.red)),
                       content: Text('Failed to send reset email: $e', style: const TextStyle(color: Colors.grey)),
                       actions: [
-                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK', style: TextStyle(color: Color(0xFFF29F05)))),
+                        TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK', style: TextStyle(color: AppColors.primary))),
                       ],
                     ),
                   );
@@ -321,7 +322,7 @@ class _SettingsPageState extends State<SettingsPage> {
       child: Text(
         title.toUpperCase(),
         style: TextStyle(
-          color: isDestructive ? Colors.red.withOpacity(0.7) : Colors.grey[600],
+          color: isDestructive ? Colors.red.withValues(alpha: 0.7) : AppColors.textSecondary,
           fontSize: 12,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.2,
@@ -338,13 +339,13 @@ class _SettingsPageState extends State<SettingsPage> {
     bool isDestructive = false,
     VoidCallback? onTap,
   }) {
-    final color = isDestructive ? Colors.red : Colors.white;
-    final iconColor = isDestructive ? Colors.red : const Color(0xFFF29F05);
+    final color = isDestructive ? Colors.red : AppColors.textPrimary;
+    final iconColor = isDestructive ? Colors.red : AppColors.primary;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
+        color: AppColors.surfaceElevated,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ListTile(
@@ -352,7 +353,7 @@ class _SettingsPageState extends State<SettingsPage> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: iconColor.withOpacity(0.12),
+            color: iconColor.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: iconColor, size: 20),
@@ -362,10 +363,10 @@ class _SettingsPageState extends State<SettingsPage> {
           style: TextStyle(color: color, fontSize: 15, fontWeight: FontWeight.w500),
         ),
         subtitle: subtitle != null
-            ? Text(subtitle, style: TextStyle(color: Colors.grey[600], fontSize: 12))
+            ? Text(subtitle, style: TextStyle(color: AppColors.textSecondary, fontSize: 12))
             : null,
         trailing: showChevron
-            ? Icon(Icons.chevron_right, color: Colors.grey[700], size: 20)
+            ? Icon(Icons.chevron_right, color: AppColors.textHint, size: 20)
             : null,
         onTap: onTap,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

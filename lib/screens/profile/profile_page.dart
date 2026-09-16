@@ -1,5 +1,6 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
@@ -110,7 +111,7 @@ class ProfilePageState extends State<ProfilePage> {
   void _showImageOptions() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF333333),
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
@@ -119,15 +120,15 @@ class ProfilePageState extends State<ProfilePage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library, color: Color(0xFFF29F05)),
-              title: const Text('Choose from Gallery', style: TextStyle(color: Colors.white)),
+              leading: const Icon(Icons.photo_library, color: AppColors.primary),
+              title: const Text('Choose from Gallery', style: TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(context);
                 _pickAndUploadImage();
               },
             ),
             if (_user?.profilePictureUrl != null) ...[
-              const Divider(color: Color(0xFF444444)),
+              const Divider(color: AppColors.surface),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: const Text('Remove Profile Picture', style: TextStyle(color: Colors.red)),
@@ -253,11 +254,11 @@ class ProfilePageState extends State<ProfilePage> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
+        backgroundColor: AppColors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Log Out',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         content: const Text(
           'Are you sure you want to log out?',
@@ -276,7 +277,7 @@ class ProfilePageState extends State<ProfilePage> {
             child: const Text(
               'Log Out',
               style: TextStyle(
-                color: Color(0xFFF29F05),
+                color: AppColors.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
               ),
@@ -314,36 +315,36 @@ class ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(
           _user?.username ?? 'Profile',
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
         automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            icon: const Icon(Icons.settings_outlined, color: AppColors.iconAppBar),
             tooltip: 'Settings',
             onPressed: _openSettings,
           ),
           IconButton(
-            icon: const Icon(Icons.logout, color: Colors.white),
+            icon: const Icon(Icons.logout, color: AppColors.iconAppBar),
             tooltip: 'Log out',
             onPressed: _showLogoutConfirmation,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: Color(0xFFF29F05)))
+          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : RefreshIndicator(
               onRefresh: _loadUserData,
-              color: const Color(0xFFF29F05),
+              color: AppColors.primary,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 child: Column(
@@ -365,7 +366,7 @@ class ProfilePageState extends State<ProfilePage> {
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: const Color(0xFFF29F05),
+                                      color: AppColors.primary,
                                       width: 2,
                                     ),
                                   ),
@@ -378,7 +379,7 @@ class ProfilePageState extends State<ProfilePage> {
                                               if (loadingProgress == null) return child;
                                               return const Center(
                                                 child: CircularProgressIndicator(
-                                                  color: Color(0xFFF29F05),
+                                                  color: AppColors.primary,
                                                   strokeWidth: 2,
                                                 ),
                                               );
@@ -392,7 +393,7 @@ class ProfilePageState extends State<ProfilePage> {
                                             },
                                           )
                                         : Container(
-                                            color: const Color(0xFF333333),
+                                            color: AppColors.surface,
                                             child: const Icon(
                                               Icons.person,
                                               size: 40,
@@ -406,11 +407,11 @@ class ProfilePageState extends State<ProfilePage> {
                                     child: Container(
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: Colors.black.withOpacity(0.5),
+                                        color: Colors.black.withValues(alpha: 0.5),
                                       ),
                                       child: const Center(
                                         child: CircularProgressIndicator(
-                                          color: Color(0xFFF29F05),
+                                          color: AppColors.primary,
                                           strokeWidth: 2,
                                         ),
                                       ),
@@ -422,7 +423,7 @@ class ProfilePageState extends State<ProfilePage> {
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: const BoxDecoration(
-                                      color: Color(0xFFF29F05),
+                                      color: AppColors.primary,
                                       shape: BoxShape.circle,
                                     ),
                                     child: const Icon(
@@ -467,7 +468,7 @@ class ProfilePageState extends State<ProfilePage> {
                           Text(
                             _user?.fullName ?? '',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
@@ -485,7 +486,7 @@ class ProfilePageState extends State<ProfilePage> {
                             Text(
                               _user!.bio!,
                               style: const TextStyle(
-                                color: Color(0xFFE0E0E0),
+                                color: AppColors.textBody,
                                 fontSize: 14,
                               ),
                             ),
@@ -498,15 +499,15 @@ class ProfilePageState extends State<ProfilePage> {
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.link, color: Color(0xFFF29F05), size: 14),
+                                Icon(Icons.link, color: AppColors.primary, size: 14),
                                 SizedBox(width: 4),
                                 Text(
                                   'hhfmedia.com',
                                   style: TextStyle(
-                                    color: Color(0xFFF29F05),
+                                    color: AppColors.primary,
                                     fontSize: 14,
                                     decoration: TextDecoration.underline,
-                                    decorationColor: Color(0xFFF29F05),
+                                    decorationColor: AppColors.primary,
                                   ),
                                 ),
                               ],
@@ -537,7 +538,7 @@ class ProfilePageState extends State<ProfilePage> {
                             }
                           },
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFF444444)),
+                            side: const BorderSide(color: AppColors.surface),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -545,7 +546,7 @@ class ProfilePageState extends State<ProfilePage> {
                           child: const Text(
                             'Edit Profile',
                             style: TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -557,15 +558,15 @@ class ProfilePageState extends State<ProfilePage> {
                     Container(
                       decoration: const BoxDecoration(
                         border: Border(
-                          top: BorderSide(color: Color(0xFF333333)),
-                          bottom: BorderSide(color: Color(0xFFF29F05), width: 2),
+                          top: BorderSide(color: AppColors.divider),
+                          bottom: BorderSide(color: AppColors.primary, width: 2),
                         ),
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       child: const Center(
                         child: Icon(
                           Icons.grid_on,
-                          color: Color(0xFFF29F05),
+                          color: AppColors.primary,
                         ),
                       ),
                     ),
@@ -579,19 +580,19 @@ class ProfilePageState extends State<ProfilePage> {
                               padding: const EdgeInsets.all(20),
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border: Border.all(color: AppColors.textPrimary, width: 2),
                               ),
                               child: const Icon(
                                 Icons.camera_alt_outlined,
                                 size: 48,
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 16),
                             const Text(
                               'Share Photos',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -611,7 +612,7 @@ class ProfilePageState extends State<ProfilePage> {
                               child: const Text(
                                 'Share your first photo',
                                 style: TextStyle(
-                                  color: Color(0xFFF29F05),
+                                  color: AppColors.primary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -642,17 +643,17 @@ class ProfilePageState extends State<ProfilePage> {
                                   loadingBuilder: (context, child, loadingProgress) {
                                     if (loadingProgress == null) return child;
                                     return Container(
-                                      color: const Color(0xFF333333),
+                                      color: AppColors.surface,
                                       child: const Center(
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Color(0xFFF29F05),
+                                          color: AppColors.primary,
                                         ),
                                       ),
                                     );
                                   },
                                   errorBuilder: (_, __, ___) => Container(
-                                    color: const Color(0xFF333333),
+                                    color: AppColors.surface,
                                     child: const Icon(Icons.broken_image, color: Colors.grey),
                                   ),
                                 ),
@@ -662,7 +663,7 @@ class ProfilePageState extends State<ProfilePage> {
                                     right: 6,
                                     child: Icon(
                                       Icons.play_circle_fill,
-                                      color: Colors.white.withOpacity(0.9),
+                                      color: Colors.white.withValues(alpha: 0.9),
                                       size: 22,
                                     ),
                                   ),
@@ -687,7 +688,7 @@ class ProfilePageState extends State<ProfilePage> {
           Text(
             count,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),

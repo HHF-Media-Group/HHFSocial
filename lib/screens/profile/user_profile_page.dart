@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
@@ -107,32 +108,32 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final user = _user;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: Text(
           user.username,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.iconAppBar),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+            icon: const Icon(Icons.more_vert, color: AppColors.iconAppBar),
             onPressed: _showBlockReportMenu,
           ),
         ],
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+              child: CircularProgressIndicator(color: AppColors.primary),
             )
           : SingleChildScrollView(
               child: Column(
@@ -146,7 +147,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         // Profile Picture
                         CircleAvatar(
                           radius: 44,
-                          backgroundColor: const Color(0xFF333333),
+                          backgroundColor: AppColors.surface,
                           backgroundImage: user.profilePictureUrl != null
                               ? NetworkImage(user.profilePictureUrl!)
                               : null,
@@ -188,7 +189,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         Text(
                           user.fullName,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
                           ),
@@ -199,7 +200,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             child: Text(
                               user.bio!,
                               style: TextStyle(
-                                color: Colors.grey[300],
+                                color: AppColors.textSecondary,
                                 fontSize: 14,
                               ),
                             ),
@@ -213,15 +214,15 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.link, color: Color(0xFFF29F05), size: 14),
+                                Icon(Icons.link, color: AppColors.primary, size: 14),
                                 SizedBox(width: 4),
                                 Text(
                                   'hhfmedia.com',
                                   style: TextStyle(
-                                    color: Color(0xFFF29F05),
+                                    color: AppColors.primary,
                                     fontSize: 14,
                                     decoration: TextDecoration.underline,
-                                    decorationColor: Color(0xFFF29F05),
+                                    decorationColor: AppColors.primary,
                                   ),
                                 ),
                               ],
@@ -243,8 +244,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               ? OutlinedButton(
                                   onPressed: _isFollowLoading ? null : _toggleFollow,
                                   style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    side: const BorderSide(color: Color(0xFF555555)),
+                                    foregroundColor: AppColors.textPrimary,
+                                    side: const BorderSide(color: AppColors.inputBorder),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
                                     ),
@@ -253,14 +254,14 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   child: _isFollowLoading
                                       ? const SizedBox(
                                           height: 18, width: 18,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.textPrimary),
                                         )
                                       : const Text('Following', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                                 )
                               : ElevatedButton(
                                   onPressed: _isFollowLoading ? null : _toggleFollow,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFF29F05),
+                                    backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.black,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8),
@@ -283,8 +284,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
                             icon: const Icon(Icons.chat_bubble_outline, size: 18),
                             label: const Text('Message', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
                             style: OutlinedButton.styleFrom(
-                              foregroundColor: Colors.white,
-                              side: const BorderSide(color: Color(0xFF555555)),
+                              foregroundColor: AppColors.textPrimary,
+                              side: const BorderSide(color: AppColors.inputBorder),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
@@ -297,7 +298,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
 
                   // Divider
-                  const Divider(color: Color(0xFF333333), height: 1),
+                  const Divider(color: AppColors.divider, height: 1),
 
                   // Photo Grid or Empty State
                   if (_posts.isEmpty)
@@ -311,19 +312,19 @@ class _UserProfilePageState extends State<UserProfilePage> {
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border:
-                                    Border.all(color: Colors.white, width: 2),
+                                    Border.all(color: AppColors.textPrimary, width: 2),
                               ),
                               child: const Icon(
                                 Icons.camera_alt_outlined,
                                 size: 40,
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 16),
                             const Text(
                               'No Posts Yet',
                               style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 fontSize: 22,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -357,17 +358,17 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                     (context, child, loadingProgress) {
                                   if (loadingProgress == null) return child;
                                   return Container(
-                                    color: const Color(0xFF333333),
+                                    color: AppColors.surface,
                                     child: const Center(
                                       child: CircularProgressIndicator(
                                         strokeWidth: 2,
-                                        color: Color(0xFFF29F05),
+                                        color: AppColors.primary,
                                       ),
                                     ),
                                   );
                                 },
                                 errorBuilder: (_, __, ___) => Container(
-                                  color: const Color(0xFF333333),
+                                  color: AppColors.surface,
                                   child: const Icon(Icons.broken_image,
                                       color: Colors.grey),
                                 ),
@@ -378,7 +379,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                                   right: 6,
                                   child: Icon(
                                     Icons.play_circle_fill,
-                                    color: Colors.white.withOpacity(0.9),
+                                    color: Colors.white.withValues(alpha: 0.9),
                                     size: 22,
                                   ),
                                 ),
@@ -418,7 +419,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           Text(
             count,
             style: const TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
             ),
@@ -427,7 +428,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey[400],
+              color: AppColors.textHint,
               fontSize: 13,
             ),
           ),
@@ -492,7 +493,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
     final blockService = BlockService();
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -503,7 +504,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             Container(
               width: 40, height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 16),
-              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(2)),
             ),
             FutureBuilder<bool>(
               future: blockService.isBlocked(_currentUid ?? '', _user.uid),
@@ -516,7 +517,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                   ),
                   title: Text(
                     isBlocked ? 'Unblock @${_user.username}' : 'Block @${_user.username}',
-                    style: const TextStyle(color: Colors.white),
+                    style: const TextStyle(color: AppColors.textPrimary),
                   ),
                   onTap: () {
                     Navigator.pop(ctx);
@@ -531,7 +532,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
             ),
             ListTile(
               leading: const Icon(Icons.flag, color: Colors.orange),
-              title: const Text('Report User', style: TextStyle(color: Colors.white)),
+              title: const Text('Report User', style: TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _showReportDialog(blockService);
@@ -549,8 +550,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Block User', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Block @${_user.username}? They won\'t be able to message you.',
           style: const TextStyle(color: Colors.grey),
@@ -579,8 +580,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Unblock User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Unblock User', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Unblock @${_user.username}?',
           style: const TextStyle(color: Colors.grey),
@@ -597,7 +598,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
                 );
               }
             },
-            child: const Text('Unblock', style: TextStyle(color: Color(0xFFF29F05))),
+            child: const Text('Unblock', style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),
@@ -610,12 +611,12 @@ class _UserProfilePageState extends State<UserProfilePage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Report User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Report User', style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: reasons.map((reason) => ListTile(
-            title: Text(reason, style: const TextStyle(color: Colors.white)),
+            title: Text(reason, style: const TextStyle(color: AppColors.textPrimary)),
             onTap: () async {
               Navigator.pop(ctx);
               await blockService.reportUser(

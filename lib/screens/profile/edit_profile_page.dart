@@ -1,5 +1,6 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../services/database_service.dart';
 import '../../utils/validators.dart';
@@ -134,7 +135,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         height: 16,
         child: CircularProgressIndicator(
           strokeWidth: 2,
-          color: Color(0xFFF29F05),
+          color: AppColors.primary,
         ),
       );
     }
@@ -248,22 +249,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: TextButton(
           onPressed: _isSaving ? null : () => Navigator.pop(context),
           child: const Text(
             'Cancel',
-            style: TextStyle(color: Colors.white, fontSize: 16),
+            style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
           ),
         ),
         leadingWidth: 80,
         title: const Text(
           'Edit Profile',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -276,7 +277,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               'Done',
               style: TextStyle(
                 color: (_hasChanges && !_isSaving)
-                    ? const Color(0xFFF29F05)
+                    ? AppColors.primary
                     : Colors.grey,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
@@ -305,7 +306,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: const Color(0xFFF29F05),
+                              color: AppColors.primary,
                               width: 2,
                             ),
                           ),
@@ -323,7 +324,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                                     },
                                   )
                                 : Container(
-                                    color: const Color(0xFF333333),
+                                    color: AppColors.surface,
                                     child: const Icon(
                                       Icons.person,
                                       size: 40,
@@ -336,7 +337,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         Text(
                           'Change profile photo on your Profile page',
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: AppColors.textSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -345,7 +346,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   ),
 
                   const SizedBox(height: 32),
-                  const Divider(color: Color(0xFF333333)),
+                  const Divider(color: AppColors.divider),
                   const SizedBox(height: 16),
 
                   // Full Name
@@ -392,11 +393,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CircularProgressIndicator(color: Color(0xFFF29F05)),
+                    CircularProgressIndicator(color: AppColors.primary),
                     SizedBox(height: 16),
                     Text(
                       'Saving...',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
                     ),
                   ],
                 ),
@@ -425,7 +426,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.grey[500],
+            color: AppColors.textSecondary,
             fontSize: 13,
             fontWeight: FontWeight.w500,
           ),
@@ -438,17 +439,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
           maxLength: maxLength,
           textCapitalization: textCapitalization,
           keyboardType: keyboardType,
-          style: const TextStyle(color: Colors.white, fontSize: 16),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
           decoration: InputDecoration(
             isDense: true,
             hintText: hintText,
-            hintStyle: TextStyle(color: Colors.grey[700], fontSize: 16),
+            hintStyle: TextStyle(color: AppColors.textHint, fontSize: 16),
             contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 0),
             enabledBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFF444444)),
+              borderSide: BorderSide(color: AppColors.surface),
             ),
             focusedBorder: const UnderlineInputBorder(
-              borderSide: BorderSide(color: Color(0xFFF29F05)),
+              borderSide: BorderSide(color: AppColors.primary),
             ),
             errorBorder: const UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.red),
@@ -468,7 +469,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
             ),
             errorText: errorText,
             errorStyle: const TextStyle(color: Colors.red, fontSize: 12),
-            counterStyle: TextStyle(color: Colors.grey[600], fontSize: 12),
+            counterStyle: TextStyle(color: AppColors.textSecondary, fontSize: 12),
           ),
         ),
       ],

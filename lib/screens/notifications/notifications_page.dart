@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/notification_model.dart';
 import '../../models/post_model.dart';
@@ -101,7 +102,7 @@ class NotificationsPageState extends State<NotificationsPage> {
       case 'like':
         return Colors.red;
       case 'comment':
-        return const Color(0xFFF29F05);
+        return AppColors.primary;
       default:
         return Colors.grey;
     }
@@ -141,29 +142,29 @@ class NotificationsPageState extends State<NotificationsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         automaticallyImplyLeading: false,
         title: const Text(
           'Activity',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: Color(0xFFF29F05),
+            color: AppColors.primary,
             fontSize: 22,
           ),
         ),
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+              child: CircularProgressIndicator(color: AppColors.primary),
             )
           : _notifications.isEmpty
               ? _buildEmptyState()
               : RefreshIndicator(
                   onRefresh: _loadNotifications,
-                  color: const Color(0xFFF29F05),
+                  color: AppColors.primary,
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     itemCount: _notifications.length,
@@ -180,12 +181,12 @@ class NotificationsPageState extends State<NotificationsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.notifications_none, size: 72, color: Colors.grey[700]),
+          Icon(Icons.notifications_none, size: 72, color: AppColors.textHint),
           const SizedBox(height: 16),
           const Text(
             'No activity yet',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -194,7 +195,7 @@ class NotificationsPageState extends State<NotificationsPage> {
           Text(
             'When someone follows you, likes or\ncomments on your posts, you\'ll see it here.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[500], fontSize: 14),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -209,9 +210,9 @@ class NotificationsPageState extends State<NotificationsPage> {
         decoration: BoxDecoration(
           color: n.isRead
               ? Colors.transparent
-              : const Color(0xFF2A2A2A),
+              : AppColors.surfaceElevated,
           border: const Border(
-            bottom: BorderSide(color: Color(0xFF2A2A2A), width: 0.5),
+            bottom: BorderSide(color: AppColors.surfaceElevated, width: 0.5),
           ),
         ),
         child: Row(
@@ -222,7 +223,7 @@ class NotificationsPageState extends State<NotificationsPage> {
               children: [
                 CircleAvatar(
                   radius: 22,
-                  backgroundColor: const Color(0xFF444444),
+                  backgroundColor: AppColors.surface,
                   backgroundImage: n.senderProfilePic != null
                       ? NetworkImage(n.senderProfilePic!)
                       : null,
@@ -236,7 +237,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                   child: Container(
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF1F1F1F),
+                      color: AppColors.background,
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
@@ -262,7 +263,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                         TextSpan(
                           text: n.senderUsername,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -270,7 +271,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                         TextSpan(
                           text: ' ${_getActionText(n)}',
                           style: TextStyle(
-                            color: Colors.grey[300],
+                            color: AppColors.textSecondary,
                             fontSize: 14,
                           ),
                         ),
@@ -280,7 +281,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                   const SizedBox(height: 4),
                   Text(
                     _timeAgo(n.createdAt),
-                    style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                   ),
                 ],
               ),
@@ -298,7 +299,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                   errorBuilder: (_, __, ___) => Container(
                     width: 44,
                     height: 44,
-                    color: const Color(0xFF333333),
+                    color: AppColors.surface,
                     child:
                         const Icon(Icons.image, color: Colors.grey, size: 20),
                   ),
@@ -312,7 +313,7 @@ class NotificationsPageState extends State<NotificationsPage> {
                 width: 8,
                 height: 8,
                 decoration: const BoxDecoration(
-                  color: Color(0xFFF29F05),
+                  color: AppColors.primary,
                   shape: BoxShape.circle,
                 ),
               ),

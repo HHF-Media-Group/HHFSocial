@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:flutter/gestures.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -43,13 +44,13 @@ class _SignUpPageState extends State<SignUpPage> {
         return Theme(
           data: Theme.of(context).copyWith(
             colorScheme: Theme.of(context).colorScheme.copyWith(
-              primary: const Color(0xFFF29F05),
-              onPrimary: Colors.black,
-              surface: const Color(0xFF333333),
-              onSurface: Colors.white,
+              primary: AppColors.primary,
+              onPrimary: AppColors.onPrimary,
+              surface: AppColors.surfaceElevated,
+              onSurface: AppColors.textPrimary,
             ),
             dialogTheme: const DialogThemeData(
-              backgroundColor: Color(0xFF1F1F1F),
+              backgroundColor: AppColors.surfaceElevated,
             ),
           ),
           child: child!,
@@ -173,11 +174,11 @@ class _SignUpPageState extends State<SignUpPage> {
               context: context,
               barrierDismissible: false,
               builder: (context) => AlertDialog(
-                backgroundColor: const Color(0xFF333333),
-                title: const Text('Verify Your Email', style: TextStyle(color: Colors.white)),
+                backgroundColor: AppColors.surfaceElevated,
+                title: const Text('Verify Your Email', style: TextStyle(color: AppColors.textPrimary)),
                 content: const Text(
                   'Account created successfully! Please check your email to verify your account before logging in.',
-                  style: TextStyle(color: Color(0xFFE0E0E0)),
+                  style: TextStyle(color: AppColors.textBody),
                 ),
                 actions: [
                   TextButton(
@@ -185,7 +186,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       Navigator.pop(context); // Close dialog
                       Navigator.pop(context); // Go back to Login
                     },
-                    child: const Text('OK', style: TextStyle(color: Color(0xFFF29F05))),
+                    child: const Text('OK', style: TextStyle(color: AppColors.primary)),
                   ),
                 ],
               ),
@@ -361,9 +362,9 @@ class _SignUpPageState extends State<SignUpPage> {
                       height: 24,
                       child: Checkbox(
                         value: _agreedToTerms,
-                        activeColor: const Color(0xFFF29F05),
-                        checkColor: Colors.black,
-                        side: BorderSide(color: Colors.grey[500]!),
+                        activeColor: AppColors.primary,
+                        checkColor: AppColors.onPrimary,
+                        side: const BorderSide(color: AppColors.textHint),
                         onChanged: (value) {
                           setState(() => _agreedToTerms = value ?? false);
                         },
@@ -374,7 +375,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: Text.rich(
                         TextSpan(
                           text: 'I agree to the ',
-                          style: TextStyle(color: Colors.grey[400], fontSize: 13),
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                           recognizer: TapGestureRecognizer()
                             ..onTap = () =>
                                 setState(() => _agreedToTerms = !_agreedToTerms),
@@ -382,7 +383,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             TextSpan(
                               text: 'Terms of Use (EULA)',
                               style: const TextStyle(
-                                color: Color(0xFFF29F05),
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
                                 decoration: TextDecoration.underline,
                               ),
@@ -404,7 +405,7 @@ class _SignUpPageState extends State<SignUpPage> {
                             TextSpan(
                               text: 'Privacy Policy',
                               style: const TextStyle(
-                                color: Color(0xFFF29F05),
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.w600,
                                 decoration: TextDecoration.underline,
                               ),

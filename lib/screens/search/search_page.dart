@@ -1,5 +1,6 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../services/auth_service.dart';
@@ -89,25 +90,25 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: Container(
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF333333),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
             controller: _searchController,
             focusNode: _focusNode,
             onChanged: _onSearchChanged,
-            style: const TextStyle(color: Colors.white, fontSize: 16),
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
             decoration: InputDecoration(
               hintText: 'Search users...',
-              hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
-              prefixIcon: Icon(Icons.search, color: Colors.grey[500], size: 22),
+              hintStyle: TextStyle(color: AppColors.textSecondary, fontSize: 16),
+              prefixIcon: Icon(Icons.search, color: AppColors.textSecondary, size: 22),
               suffixIcon: _searchController.text.isNotEmpty
                   ? GestureDetector(
                       onTap: () {
@@ -115,7 +116,7 @@ class _SearchPageState extends State<SearchPage> {
                         _onSearchChanged('');
                         _focusNode.requestFocus();
                       },
-                      child: Icon(Icons.close, color: Colors.grey[500], size: 20),
+                      child: Icon(Icons.close, color: AppColors.textSecondary, size: 20),
                     )
                   : null,
               border: InputBorder.none,
@@ -133,7 +134,7 @@ class _SearchPageState extends State<SearchPage> {
     if (_isSearching) {
       return const Center(
         child: CircularProgressIndicator(
-          color: Color(0xFFF29F05),
+          color: AppColors.primary,
         ),
       );
     }
@@ -144,12 +145,12 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.search, size: 72, color: Colors.grey[700]),
+            Icon(Icons.search, size: 72, color: AppColors.textHint),
             const SizedBox(height: 16),
             Text(
               'Search for users',
               style: TextStyle(
-                color: Colors.grey[500],
+                color: AppColors.textSecondary,
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
@@ -158,7 +159,7 @@ class _SearchPageState extends State<SearchPage> {
             Text(
               'Find people by their username',
               style: TextStyle(
-                color: Colors.grey[600],
+                color: AppColors.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -173,12 +174,12 @@ class _SearchPageState extends State<SearchPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.person_off_outlined, size: 64, color: Colors.grey[700]),
+            Icon(Icons.person_off_outlined, size: 64, color: AppColors.textHint),
             const SizedBox(height: 16),
             Text(
               'No users found',
               style: TextStyle(
-                color: Colors.grey[500],
+                color: AppColors.textSecondary,
                 fontSize: 18,
                 fontWeight: FontWeight.w500,
               ),
@@ -187,7 +188,7 @@ class _SearchPageState extends State<SearchPage> {
             Text(
               'Try a different username',
               style: TextStyle(
-                color: Colors.grey[600],
+                color: AppColors.textSecondary,
                 fontSize: 14,
               ),
             ),
@@ -213,7 +214,7 @@ class _SearchPageState extends State<SearchPage> {
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
         radius: 26,
-        backgroundColor: const Color(0xFF333333),
+        backgroundColor: AppColors.surface,
         backgroundImage: user.profilePictureUrl != null
             ? NetworkImage(user.profilePictureUrl!)
             : null,
@@ -224,7 +225,7 @@ class _SearchPageState extends State<SearchPage> {
       title: Text(
         user.username,
         style: const TextStyle(
-          color: Colors.white,
+          color: AppColors.textPrimary,
           fontWeight: FontWeight.w600,
           fontSize: 15,
         ),
@@ -235,7 +236,7 @@ class _SearchPageState extends State<SearchPage> {
           Text(
             user.fullName,
             style: TextStyle(
-              color: Colors.grey[400],
+              color: AppColors.textHint,
               fontSize: 13,
             ),
           ),
@@ -247,14 +248,14 @@ class _SearchPageState extends State<SearchPage> {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Colors.grey[600],
+                  color: AppColors.textSecondary,
                   fontSize: 12,
                 ),
               ),
             ),
         ],
       ),
-      trailing: Icon(Icons.chevron_right, color: Colors.grey[600], size: 20),
+      trailing: Icon(Icons.chevron_right, color: AppColors.textSecondary, size: 20),
     );
   }
 }

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/chat_model.dart';
 import '../../models/user_model.dart';
@@ -61,19 +62,19 @@ class InboxPageState extends State<InboxPage> with SingleTickerProviderStateMixi
   Widget build(BuildContext context) {
     if (_currentUid == null) {
       return const Scaffold(
-        backgroundColor: Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         body: Center(child: Text('Not logged in', style: TextStyle(color: Colors.grey))),
       );
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: const Text(
           'Messages',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 22),
         ),
         centerTitle: false,
       ),
@@ -89,13 +90,13 @@ class InboxPageState extends State<InboxPage> with SingleTickerProviderStateMixi
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.grey[700]),
+                  Icon(Icons.error_outline, size: 48, color: AppColors.textHint),
                   const SizedBox(height: 12),
-                  Text('Error loading messages', style: TextStyle(color: Colors.grey[500], fontSize: 16)),
+                  Text('Error loading messages', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
                   const SizedBox(height: 16),
                   TextButton(
                     onPressed: () => setState(() {}),
-                    child: const Text('Retry', style: TextStyle(color: Color(0xFFF29F05))),
+                    child: const Text('Retry', style: TextStyle(color: AppColors.primary)),
                   ),
                 ],
               ),
@@ -106,8 +107,8 @@ class InboxPageState extends State<InboxPage> with SingleTickerProviderStateMixi
 
           if (chats.isEmpty) {
             return RefreshIndicator(
-              color: const Color(0xFFF29F05),
-              backgroundColor: const Color(0xFF2A2A2A),
+              color: AppColors.primary,
+              backgroundColor: AppColors.surfaceElevated,
               onRefresh: _onRefresh,
               child: ListView(
                 children: [
@@ -120,20 +121,20 @@ class InboxPageState extends State<InboxPage> with SingleTickerProviderStateMixi
                           Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2A2A2A),
+                              color: AppColors.surfaceElevated,
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.chat_bubble_outline, size: 48, color: Colors.grey[600]),
+                            child: Icon(Icons.chat_bubble_outline, size: 48, color: AppColors.textSecondary),
                           ),
                           const SizedBox(height: 20),
                           Text(
                             'No messages yet',
-                            style: TextStyle(color: Colors.grey[400], fontSize: 18, fontWeight: FontWeight.w600),
+                            style: TextStyle(color: AppColors.textHint, fontSize: 18, fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'Search for users to start a conversation',
-                            style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
                           ),
                         ],
                       ),
@@ -145,15 +146,15 @@ class InboxPageState extends State<InboxPage> with SingleTickerProviderStateMixi
           }
 
           return RefreshIndicator(
-            color: const Color(0xFFF29F05),
-            backgroundColor: const Color(0xFF2A2A2A),
+            color: AppColors.primary,
+            backgroundColor: AppColors.surfaceElevated,
             onRefresh: _onRefresh,
             child: ListView.separated(
               physics: const AlwaysScrollableScrollPhysics(),
               itemCount: chats.length,
               separatorBuilder: (_, __) => Padding(
                 padding: const EdgeInsets.only(left: 76),
-                child: Divider(color: Colors.grey[800]!.withOpacity(0.5), height: 1),
+                child: Divider(color: Colors.grey[800]!.withValues(alpha: 0.5), height: 1),
               ),
               itemBuilder: (context, index) {
                 return _ChatTile(
@@ -309,7 +310,7 @@ class _ChatTileState extends State<_ChatTile> {
     if (_otherUser == null) return;
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -320,11 +321,11 @@ class _ChatTileState extends State<_ChatTile> {
             Container(
               width: 40, height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 16),
-              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(2)),
             ),
             ListTile(
               leading: const Icon(Icons.block, color: Colors.red),
-              title: const Text('Block User', style: TextStyle(color: Colors.white)),
+              title: const Text('Block User', style: TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _confirmBlock();
@@ -332,7 +333,7 @@ class _ChatTileState extends State<_ChatTile> {
             ),
             ListTile(
               leading: const Icon(Icons.flag, color: Colors.orange),
-              title: const Text('Report User', style: TextStyle(color: Colors.white)),
+              title: const Text('Report User', style: TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _showReportDialog();
@@ -349,8 +350,8 @@ class _ChatTileState extends State<_ChatTile> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Block User', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Block @${_otherUser!.username}? They won\'t be able to message you.',
           style: const TextStyle(color: Colors.grey),
@@ -380,12 +381,12 @@ class _ChatTileState extends State<_ChatTile> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Report User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Report User', style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: reasons.map((reason) => ListTile(
-            title: Text(reason, style: const TextStyle(color: Colors.white)),
+            title: Text(reason, style: const TextStyle(color: AppColors.textPrimary)),
             onTap: () async {
               Navigator.pop(ctx);
               await widget.blockService.reportUser(
@@ -426,13 +427,13 @@ class _ChatTileState extends State<_ChatTile> {
               decoration: hasUnread
                   ? BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFF29F05), width: 2),
+                      border: Border.all(color: AppColors.primary, width: 2),
                     )
                   : null,
               padding: hasUnread ? const EdgeInsets.all(2) : null,
               child: CircleAvatar(
                 radius: hasUnread ? 26 : 28,
-                backgroundColor: const Color(0xFF333333),
+                backgroundColor: AppColors.surface,
                 backgroundImage: _otherUser!.profilePictureUrl != null
                     ? NetworkImage(_otherUser!.profilePictureUrl!)
                     : null,
@@ -450,7 +451,7 @@ class _ChatTileState extends State<_ChatTile> {
                   Text(
                     _otherUser!.username,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontWeight: hasUnread ? FontWeight.bold : FontWeight.w500,
                       fontSize: 15,
                     ),
@@ -463,7 +464,7 @@ class _ChatTileState extends State<_ChatTile> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: hasUnread ? Colors.white70 : Colors.grey[600],
+                      color: hasUnread ? AppColors.textSecondary : AppColors.textSecondary,
                       fontWeight: hasUnread ? FontWeight.w500 : FontWeight.normal,
                       fontSize: 13,
                     ),
@@ -478,7 +479,7 @@ class _ChatTileState extends State<_ChatTile> {
                 Text(
                   _timeAgo(widget.chat.lastMessageAt),
                   style: TextStyle(
-                    color: hasUnread ? const Color(0xFFF29F05) : Colors.grey[600],
+                    color: hasUnread ? AppColors.primary : AppColors.textSecondary,
                     fontSize: 12,
                   ),
                 ),
@@ -487,7 +488,7 @@ class _ChatTileState extends State<_ChatTile> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF29F05),
+                      color: AppColors.primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(

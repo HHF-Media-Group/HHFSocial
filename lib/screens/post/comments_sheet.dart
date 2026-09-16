@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/comment_model.dart';
 import '../../services/auth_service.dart';
@@ -131,10 +132,10 @@ class _CommentsSheetState extends State<CommentsSheet> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
+        backgroundColor: AppColors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete Comment',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         content: const Text('Delete this comment?',
             style: TextStyle(color: Colors.grey)),
         actions: [
@@ -226,7 +227,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
       child: Container(
         height: MediaQuery.of(context).size.height * 0.65,
         decoration: const BoxDecoration(
-          color: Color(0xFF1F1F1F),
+          color: AppColors.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
@@ -237,7 +238,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey[600],
+                color: AppColors.textSecondary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -250,7 +251,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                   const Text(
                     'Comments',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 18,
                     ),
@@ -258,19 +259,19 @@ class _CommentsSheetState extends State<CommentsSheet> {
                   const SizedBox(width: 8),
                   Text(
                     '${_comments.length}',
-                    style: TextStyle(color: Colors.grey[500], fontSize: 16),
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
                   ),
                 ],
               ),
             ),
 
-            const Divider(color: Color(0xFF333333), height: 1),
+            const Divider(color: AppColors.divider, height: 1),
 
             // Comment list
             Expanded(
               child: _isLoading
                   ? const Center(
-                      child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+                      child: CircularProgressIndicator(color: AppColors.primary),
                     )
                   : _comments.isEmpty
                       ? Center(
@@ -278,18 +279,18 @@ class _CommentsSheetState extends State<CommentsSheet> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(Icons.chat_bubble_outline,
-                                  size: 48, color: Colors.grey[700]),
+                                  size: 48, color: AppColors.textHint),
                               const SizedBox(height: 12),
                               Text(
                                 'No comments yet',
                                 style: TextStyle(
-                                    color: Colors.grey[500], fontSize: 16),
+                                    color: AppColors.textSecondary, fontSize: 16),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'Be the first to comment!',
                                 style: TextStyle(
-                                    color: Colors.grey[700], fontSize: 13),
+                                    color: AppColors.textHint, fontSize: 13),
                               ),
                             ],
                           ),
@@ -313,9 +314,9 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 bottom: 8,
               ),
               decoration: const BoxDecoration(
-                color: Color(0xFF2A2A2A),
+                color: AppColors.surfaceElevated,
                 border: Border(
-                  top: BorderSide(color: Color(0xFF333333)),
+                  top: BorderSide(color: AppColors.divider),
                 ),
               ),
               child: SafeArea(
@@ -325,7 +326,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                     // Avatar
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: const Color(0xFF444444),
+                      backgroundColor: AppColors.surface,
                       backgroundImage: _currentUser?.profilePictureUrl != null
                           ? NetworkImage(_currentUser!.profilePictureUrl!)
                           : null,
@@ -339,12 +340,12 @@ class _CommentsSheetState extends State<CommentsSheet> {
                       child: TextField(
                         controller: _textController,
                         focusNode: _focusNode,
-                        style: const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                         maxLines: 3,
                         minLines: 1,
                         decoration: InputDecoration(
                           hintText: 'Add a comment...',
-                          hintStyle: TextStyle(color: Colors.grey[600]),
+                          hintStyle: TextStyle(color: AppColors.textSecondary),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.zero,
                         ),
@@ -360,11 +361,11 @@ class _CommentsSheetState extends State<CommentsSheet> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Color(0xFFF29F05),
+                                color: AppColors.primary,
                               ),
                             )
                           : const Icon(Icons.send_rounded,
-                              color: Color(0xFFF29F05)),
+                              color: AppColors.primary),
                     ),
                   ],
                 ),
@@ -387,7 +388,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
           // Avatar
           CircleAvatar(
             radius: 14,
-            backgroundColor: const Color(0xFF444444),
+            backgroundColor: AppColors.surface,
             backgroundImage: comment.profilePictureUrl != null
                 ? NetworkImage(comment.profilePictureUrl!)
                 : null,
@@ -406,7 +407,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                     Text(
                       comment.username,
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -414,14 +415,14 @@ class _CommentsSheetState extends State<CommentsSheet> {
                     const SizedBox(width: 8),
                     Text(
                       _timeAgo(comment.createdAt),
-                      style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 11),
                     ),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
                   comment.text,
-                  style: TextStyle(color: Colors.grey[300], fontSize: 13),
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
               ],
             ),
@@ -432,7 +433,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
               onTap: () => _deleteComment(comment),
               child: Padding(
                 padding: const EdgeInsets.only(left: 8, top: 2),
-                child: Icon(Icons.close, size: 14, color: Colors.grey[600]),
+                child: Icon(Icons.close, size: 14, color: AppColors.textSecondary),
               ),
             )
           else
@@ -441,7 +442,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
               child: Padding(
                 padding: const EdgeInsets.only(left: 8, top: 2),
                 child: Icon(Icons.flag_outlined,
-                    size: 14, color: Colors.grey[600]),
+                    size: 14, color: AppColors.textSecondary),
               ),
             ),
         ],

@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 /// Shared bottom sheet for picking a report reason.
 /// Returns the selected reason, or null if dismissed.
@@ -15,7 +16,7 @@ class ReportContentSheet {
   static Future<String?> show(BuildContext context, {required String title}) {
     return showModalBottomSheet<String>(
       context: context,
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -28,14 +29,14 @@ class ReportContentSheet {
               height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.grey[600],
+                color: AppColors.textSecondary,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             Text(
               title,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -43,14 +44,14 @@ class ReportContentSheet {
             const SizedBox(height: 4),
             Text(
               'Why are you reporting this?',
-              style: TextStyle(color: Colors.grey[500], fontSize: 13),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
             ),
             const SizedBox(height: 8),
             ..._reasons.map(
               (reason) => ListTile(
                 dense: true,
                 leading: const Icon(Icons.flag_outlined, color: Colors.orange, size: 20),
-                title: Text(reason, style: const TextStyle(color: Colors.white)),
+                title: Text(reason, style: const TextStyle(color: AppColors.textPrimary)),
                 onTap: () => Navigator.pop(ctx, reason),
               ),
             ),

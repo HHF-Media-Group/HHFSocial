@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 
 /// Terms of Use (EULA) page.
 ///
@@ -20,14 +21,14 @@ class TermsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         automaticallyImplyLeading: !requireAcceptance,
         title: const Text(
           'Terms of Use (EULA)',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -105,8 +106,8 @@ class TermsPage extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
               decoration: const BoxDecoration(
-                color: Color(0xFF2A2A2A),
-                border: Border(top: BorderSide(color: Color(0xFF333333))),
+                color: AppColors.surfaceElevated,
+                border: Border(top: BorderSide(color: AppColors.divider)),
               ),
               child: SafeArea(
                 top: false,
@@ -120,7 +121,7 @@ class TermsPage extends StatelessWidget {
                         onPressed: onDeclined,
                         child: Text(
                           'Decline and sign out',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                         ),
                       ),
                   ],
@@ -137,7 +138,7 @@ class TermsPage extends StatelessWidget {
         child: Text(
           text,
           style: const TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -149,7 +150,7 @@ class TermsPage extends StatelessWidget {
         child: Text(
           text,
           style: const TextStyle(
-            color: Color(0xFFF29F05),
+            color: AppColors.primary,
             fontSize: 15,
             fontWeight: FontWeight.w600,
           ),
@@ -158,7 +159,7 @@ class TermsPage extends StatelessWidget {
 
   Widget _text(String text) => Text(
         text,
-        style: TextStyle(color: Colors.grey[300], fontSize: 14, height: 1.5),
+        style: TextStyle(color: AppColors.textSecondary, fontSize: 14, height: 1.5),
       );
 }
 

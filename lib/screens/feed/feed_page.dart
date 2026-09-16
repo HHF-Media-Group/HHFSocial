@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/user_model.dart';
 import '../../models/post_model.dart';
@@ -243,7 +244,7 @@ class FeedPageState extends State<FeedPage> {
   void _showPostOptions(PostModel post, UserModel? user) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -254,11 +255,11 @@ class FeedPageState extends State<FeedPage> {
             Container(
               width: 40, height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 16),
-              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppColors.textHint, borderRadius: BorderRadius.circular(2)),
             ),
             ListTile(
               leading: const Icon(Icons.flag, color: Colors.orange),
-              title: const Text('Report Post', style: TextStyle(color: Colors.white)),
+              title: const Text('Report Post', style: TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _reportPost(post);
@@ -268,7 +269,7 @@ class FeedPageState extends State<FeedPage> {
               leading: const Icon(Icons.block, color: Colors.red),
               title: Text(
                 'Block @${user?.username ?? 'user'}',
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.textPrimary),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -322,11 +323,11 @@ class FeedPageState extends State<FeedPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Block User', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Block @$username? Their content will be removed from your feed and they won\'t be able to message you.',
-          style: const TextStyle(color: Colors.grey),
+          style: const TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
           TextButton(
@@ -395,9 +396,9 @@ class FeedPageState extends State<FeedPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Row(
@@ -408,7 +409,7 @@ class FeedPageState extends State<FeedPage> {
               'Post Feed',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Color(0xFFF29F05),
+                color: AppColors.primary,
                 fontSize: 22,
               ),
             ),
@@ -417,13 +418,13 @@ class FeedPageState extends State<FeedPage> {
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+              child: CircularProgressIndicator(color: AppColors.primary),
             )
           : _posts.isEmpty
               ? _buildEmptyState()
               : RefreshIndicator(
                   onRefresh: _loadFeed,
-                  color: const Color(0xFFF29F05),
+                  color: AppColors.primary,
                   child: ListView.builder(
                     controller: _scrollController,
                     padding: const EdgeInsets.symmetric(
@@ -437,13 +438,13 @@ class FeedPageState extends State<FeedPage> {
                           child: Center(
                             child: _isLoadingMore
                                 ? const CircularProgressIndicator(
-                                    color: Color(0xFFF29F05),
+                                    color: AppColors.primary,
                                     strokeWidth: 2,
                                   )
                                 : Text(
                                     'Scroll for more',
                                     style: TextStyle(
-                                      color: Colors.grey[600],
+                                      color: AppColors.textSecondary,
                                       fontSize: 13,
                                     ),
                                   ),
@@ -464,12 +465,12 @@ class FeedPageState extends State<FeedPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.people_outline, size: 72, color: Colors.grey[700]),
+          Icon(Icons.people_outline, size: 72, color: AppColors.textHint),
           const SizedBox(height: 16),
           const Text(
             'Your feed is empty',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.textPrimary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
@@ -478,7 +479,7 @@ class FeedPageState extends State<FeedPage> {
           Text(
             'Follow people to see their\nposts and updates here.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey[500], fontSize: 14),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -493,11 +494,11 @@ class FeedPageState extends State<FeedPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: const Color(0xFF2A2A2A),
+        color: AppColors.surfaceElevated,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -524,17 +525,17 @@ class FeedPageState extends State<FeedPage> {
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
                         return Container(
-                          color: const Color(0xFF333333),
+                          color: AppColors.surface,
                           child: const Center(
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
-                              color: Color(0xFFF29F05),
+                              color: AppColors.primary,
                             ),
                           ),
                         );
                       },
                       errorBuilder: (_, __, ___) => Container(
-                        color: const Color(0xFF333333),
+                        color: AppColors.surface,
                         child: const Center(
                           child: Icon(Icons.broken_image,
                               color: Colors.grey, size: 40),
@@ -551,7 +552,7 @@ class FeedPageState extends State<FeedPage> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
+                        color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: const Icon(Icons.play_arrow, color: Colors.white, size: 20),
@@ -610,7 +611,7 @@ class FeedPageState extends State<FeedPage> {
                     children: [
                       CircleAvatar(
                         radius: 16,
-                        backgroundColor: const Color(0xFF444444),
+                        backgroundColor: AppColors.surface,
                         backgroundImage: user?.profilePictureUrl != null
                             ? NetworkImage(user!.profilePictureUrl!)
                             : null,
@@ -624,7 +625,7 @@ class FeedPageState extends State<FeedPage> {
                         child: Text(
                           user?.username ?? 'unknown',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
@@ -633,7 +634,7 @@ class FeedPageState extends State<FeedPage> {
                       Text(
                         _timeAgo(post.createdAt),
                         style: TextStyle(
-                          color: Colors.grey[600],
+                          color: AppColors.textSecondary,
                           fontSize: 12,
                         ),
                       ),
@@ -662,7 +663,7 @@ class FeedPageState extends State<FeedPage> {
                           TextSpan(
                             text: '${user?.username ?? ''} ',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),
@@ -670,7 +671,7 @@ class FeedPageState extends State<FeedPage> {
                           TextSpan(
                             text: post.caption!,
                             style: TextStyle(
-                              color: Colors.grey[300],
+                              color: AppColors.textSecondary,
                               fontSize: 13,
                             ),
                           ),
@@ -710,7 +711,7 @@ class FeedPageState extends State<FeedPage> {
                             Text(
                               '$likeCount',
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: AppColors.textSecondary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),
@@ -730,7 +731,7 @@ class FeedPageState extends State<FeedPage> {
                             Text(
                               '${_commentCounts[post.postId] ?? post.commentsCount}',
                               style: TextStyle(
-                                color: Colors.grey[400],
+                                color: AppColors.textSecondary,
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                               ),

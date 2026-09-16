@@ -1,5 +1,6 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:video_player/video_player.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -116,10 +117,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
+        backgroundColor: AppColors.surfaceElevated,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Delete Post',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         content: const Text(
           'Are you sure you want to delete this post? This action cannot be undone.',
           style: TextStyle(color: Colors.grey, fontSize: 15),
@@ -174,23 +175,23 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF2A2A2A),
+                          AppColors.surfaceElevated,
                           Color(0xFF1A1A1A),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(24),
                       border: Border.all(
-                        color: const Color(0xFFF29F05).withOpacity(0.2),
+                        color: AppColors.primary.withValues(alpha: 0.2),
                         width: 1,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFF29F05).withOpacity(0.15),
+                          color: AppColors.primary.withValues(alpha: 0.15),
                           blurRadius: 30,
                           spreadRadius: 2,
                         ),
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.5),
+                          color: Colors.black.withValues(alpha: 0.5),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -211,12 +212,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                 height: 56,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  color: const Color(0xFFF29F05).withOpacity(0.8),
+                                  color: AppColors.primary.withValues(alpha: 0.8),
                                 ),
                               ),
                               const _PulsingIcon(
                                 icon: Icons.delete_outline,
-                                color: Color(0xFFF29F05),
+                                color: AppColors.primary,
                                 size: 26,
                               ),
                             ],
@@ -226,7 +227,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         const Text(
                           'Deleting',
                           style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             letterSpacing: 0.5,
@@ -236,7 +237,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         Text(
                           'Cleaning up your post...',
                           style: TextStyle(
-                            color: Colors.grey[500],
+                            color: AppColors.textSecondary,
                             fontSize: 12,
                           ),
                         ),
@@ -285,7 +286,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void _showOptionsMenu() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -296,11 +297,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
             Container(
               width: 40, height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 16),
-              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(2)),
             ),
             ListTile(
               leading: const Icon(Icons.flag, color: Colors.orange),
-              title: const Text('Report Post', style: TextStyle(color: Colors.white)),
+              title: const Text('Report Post', style: TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _reportPost();
@@ -308,7 +309,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             ),
             ListTile(
               leading: const Icon(Icons.block, color: Colors.red),
-              title: Text('Block @${widget.username}', style: const TextStyle(color: Colors.white)),
+              title: Text('Block @${widget.username}', style: const TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _confirmBlock();
@@ -368,8 +369,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Block User', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Block @${widget.username}? Their content will be removed from your feed and they won\'t be able to message you.',
           style: const TextStyle(color: Colors.grey),
@@ -412,17 +413,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
         DateFormat('MMMM d, yyyy').format(widget.post.createdAt);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.iconAppBar),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Post',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
         ),
         actions: [
           if (isOwner)
@@ -432,7 +433,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             )
           else
             IconButton(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
+              icon: const Icon(Icons.more_vert, color: AppColors.iconAppBar),
               onPressed: _showOptionsMenu,
             ),
         ],
@@ -453,7 +454,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: const Color(0xFFF29F05),
+                        color: AppColors.primary,
                         width: 1.5,
                       ),
                     ),
@@ -469,7 +470,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                               ),
                             )
                           : Container(
-                              color: const Color(0xFF333333),
+                              color: AppColors.surface,
                               child: const Icon(
                                 Icons.person,
                                 size: 20,
@@ -482,7 +483,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   Text(
                     widget.username,
                     style: const TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
                     ),
@@ -514,7 +515,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                                     ? loadingProgress.cumulativeBytesLoaded /
                                         loadingProgress.expectedTotalBytes!
                                     : null,
-                                color: const Color(0xFFF29F05),
+                                color: AppColors.primary,
                               ),
                             ),
                           );
@@ -547,7 +548,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       child: Icon(
                         _isLiked ? Icons.favorite : Icons.favorite_border,
                         key: ValueKey(_isLiked),
-                        color: _isLiked ? Colors.red : Colors.grey[400],
+                        color: _isLiked ? Colors.red : AppColors.textHint,
                         size: 26,
                       ),
                     ),
@@ -555,7 +556,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     Text(
                       '$_likeCount',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -567,12 +568,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       child: Row(
                         children: [
                           Icon(Icons.chat_bubble_outline,
-                              color: Colors.grey[400], size: 24),
+                              color: AppColors.textHint, size: 24),
                           const SizedBox(width: 8),
                           Text(
                             '$_commentCount',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -599,7 +600,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           TextSpan(
                             text: '${widget.username}  ',
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
@@ -607,7 +608,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                           TextSpan(
                             text: widget.post.caption!,
                             style: const TextStyle(
-                              color: Color(0xFFE0E0E0),
+                              color: AppColors.textBody,
                               fontSize: 14,
                             ),
                           ),
@@ -619,7 +620,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   Text(
                     formattedDate,
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: AppColors.textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -653,7 +654,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       return SizedBox(
         height: MediaQuery.of(context).size.width,
         child: const Center(
-          child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
       );
     }
@@ -679,10 +680,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.play_arrow, color: Colors.white, size: 40),
+              child: const Icon(Icons.play_arrow, color: AppColors.textPrimary, size: 40),
             ),
           // Mute button
           Positioned(
@@ -697,12 +698,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
               child: Container(
                 padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Icon(
                   _videoController!.value.volume > 0 ? Icons.volume_up : Icons.volume_off,
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   size: 18,
                 ),
               ),
@@ -717,7 +718,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               _videoController!,
               allowScrubbing: true,
               colors: const VideoProgressColors(
-                playedColor: Color(0xFFF29F05),
+                playedColor: AppColors.primary,
                 bufferedColor: Colors.white24,
                 backgroundColor: Colors.white10,
               ),

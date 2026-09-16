@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -8,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
 import 'services/auth_service.dart';
 import 'services/database_service.dart';
+import 'utils/app_colors.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/legal/terms_page.dart';
 import 'screens/profile/profile_page.dart';
@@ -46,38 +48,48 @@ class HHFSocialApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
-          scaffoldBackgroundColor: const Color(0xFF1F1F1F),
-          colorScheme: const ColorScheme.dark(
-            primary: Color(0xFFF29F05),
-            surface: Color(0xFF333333),
-            background: Color(0xFF1F1F1F),
-            onPrimary: Colors.black,
-            onSurface: Color(0xFFE0E0E0),
+          brightness: Brightness.light,
+          scaffoldBackgroundColor: AppColors.background,
+          colorScheme: const ColorScheme.light(
+            primary: AppColors.primary,
+            surface: AppColors.surface,
+            onPrimary: AppColors.onPrimary,
+            onSurface: AppColors.textBody,
+          ),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.background,
+            foregroundColor: AppColors.textPrimary,
+            elevation: 0,
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
           ),
           textTheme: TextTheme(
-            displayLarge: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-            displayMedium: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.bold),
-            bodyLarge: GoogleFonts.roboto(color: const Color(0xFFE0E0E0)),
-            bodyMedium: GoogleFonts.roboto(color: const Color(0xFFE0E0E0)),
-            titleMedium: GoogleFonts.outfit(color: Colors.white, fontWeight: FontWeight.w600),
+            displayLarge: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+            displayMedium: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+            bodyLarge: GoogleFonts.roboto(color: AppColors.textBody),
+            bodyMedium: GoogleFonts.roboto(color: AppColors.textBody),
+            titleMedium: GoogleFonts.outfit(color: AppColors.textPrimary, fontWeight: FontWeight.w600),
           ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: const Color(0xFF333333),
-            hintStyle: TextStyle(color: Colors.grey[400]),
+            fillColor: AppColors.inputFill,
+            hintStyle: const TextStyle(color: AppColors.textHint),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+              borderSide: const BorderSide(color: AppColors.inputBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.inputBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFF29F05), width: 2),
+              borderSide: const BorderSide(color: AppColors.primary, width: 2),
             ),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFF29F05),
-              foregroundColor: Colors.black,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.onPrimary,
               textStyle: GoogleFonts.outfit(fontWeight: FontWeight.bold, fontSize: 16),
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
               shape: RoundedRectangleBorder(
@@ -86,7 +98,7 @@ class HHFSocialApp extends StatelessWidget {
             ),
           ),
           dividerTheme: const DividerThemeData(
-            color: Color(0xFF444444),
+            color: AppColors.divider,
             thickness: 1,
           ),
         ),
@@ -276,15 +288,15 @@ class _HomePageState extends State<HomePage> {
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
           border: Border(
-            top: BorderSide(color: Color(0xFF333333), width: 0.5),
+            top: BorderSide(color: AppColors.divider, width: 0.5),
           ),
         ),
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: _onTabTapped,
-          backgroundColor: const Color(0xFF1F1F1F),
-          selectedItemColor: const Color(0xFFF29F05),
-          unselectedItemColor: Colors.grey,
+          backgroundColor: AppColors.bottomNavBackground,
+          selectedItemColor: AppColors.navSelected,
+          unselectedItemColor: AppColors.navUnselected,
           showSelectedLabels: false,
           showUnselectedLabels: false,
           type: BottomNavigationBarType.fixed,

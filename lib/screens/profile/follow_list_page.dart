@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import '../../models/user_model.dart';
 import '../../services/database_service.dart';
 import '../../services/follow_service.dart';
@@ -68,9 +69,9 @@ class _FollowListPageState extends State<FollowListPage> {
         : 'Following';
 
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +79,7 @@ class _FollowListPageState extends State<FollowListPage> {
             Text(
               widget.username,
               style: TextStyle(
-                color: Colors.grey[400],
+                color: AppColors.textHint,
                 fontSize: 13,
                 fontWeight: FontWeight.normal,
               ),
@@ -86,7 +87,7 @@ class _FollowListPageState extends State<FollowListPage> {
             Text(
               title,
               style: const TextStyle(
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
               ),
@@ -94,13 +95,13 @@ class _FollowListPageState extends State<FollowListPage> {
           ],
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.iconAppBar),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: _isLoading
           ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+              child: CircularProgressIndicator(color: AppColors.primary),
             )
           : _users.isEmpty
               ? Center(
@@ -112,7 +113,7 @@ class _FollowListPageState extends State<FollowListPage> {
                             ? Icons.people_outline
                             : Icons.person_add_outlined,
                         size: 64,
-                        color: Colors.grey[700],
+                        color: AppColors.textHint,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -120,7 +121,7 @@ class _FollowListPageState extends State<FollowListPage> {
                             ? 'No followers yet'
                             : 'Not following anyone yet',
                         style: TextStyle(
-                          color: Colors.grey[500],
+                          color: AppColors.textSecondary,
                           fontSize: 18,
                           fontWeight: FontWeight.w500,
                         ),
@@ -139,7 +140,7 @@ class _FollowListPageState extends State<FollowListPage> {
                           horizontal: 16, vertical: 4),
                       leading: CircleAvatar(
                         radius: 26,
-                        backgroundColor: const Color(0xFF333333),
+                        backgroundColor: AppColors.surface,
                         backgroundImage: user.profilePictureUrl != null
                             ? NetworkImage(user.profilePictureUrl!)
                             : null,
@@ -151,7 +152,7 @@ class _FollowListPageState extends State<FollowListPage> {
                       title: Text(
                         user.username,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
                         ),
@@ -159,12 +160,12 @@ class _FollowListPageState extends State<FollowListPage> {
                       subtitle: Text(
                         user.fullName,
                         style: TextStyle(
-                          color: Colors.grey[400],
+                          color: AppColors.textHint,
                           fontSize: 13,
                         ),
                       ),
                       trailing: Icon(Icons.chevron_right,
-                          color: Colors.grey[600], size: 20),
+                          color: AppColors.textSecondary, size: 20),
                     );
                   },
                 ),

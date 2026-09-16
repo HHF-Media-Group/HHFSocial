@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -109,7 +110,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   void _showBlockReportMenu() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -120,7 +121,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             Container(
               width: 40, height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 16),
-              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(2)),
             ),
             ListTile(
               leading: Icon(
@@ -129,7 +130,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
               ),
               title: Text(
                 _hasBlockedOther ? 'Unblock @${widget.otherUser.username}' : 'Block @${widget.otherUser.username}',
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.textPrimary),
               ),
               onTap: () {
                 Navigator.pop(ctx);
@@ -142,7 +143,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             ),
             ListTile(
               leading: const Icon(Icons.flag, color: Colors.orange),
-              title: const Text('Report User', style: TextStyle(color: Colors.white)),
+              title: const Text('Report User', style: TextStyle(color: AppColors.textPrimary)),
               onTap: () {
                 Navigator.pop(ctx);
                 _showReportDialog();
@@ -159,8 +160,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Block User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Block User', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Block @${widget.otherUser.username}? They won\'t be able to message you.',
           style: const TextStyle(color: Colors.grey),
@@ -189,8 +190,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Unblock User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Unblock User', style: TextStyle(color: AppColors.textPrimary)),
         content: Text(
           'Unblock @${widget.otherUser.username}? They will be able to message you again.',
           style: const TextStyle(color: Colors.grey),
@@ -208,7 +209,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 );
               }
             },
-            child: const Text('Unblock', style: TextStyle(color: Color(0xFFF29F05))),
+            child: const Text('Unblock', style: TextStyle(color: AppColors.primary)),
           ),
         ],
       ),
@@ -220,12 +221,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Report User', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Report User', style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: reasons.map((reason) => ListTile(
-            title: Text(reason, style: const TextStyle(color: Colors.white)),
+            title: Text(reason, style: const TextStyle(color: AppColors.textPrimary)),
             onTap: () async {
               Navigator.pop(ctx);
               await _blockService.reportUser(
@@ -248,9 +249,9 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F1F),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1F1F1F),
+        backgroundColor: AppColors.background,
         elevation: 0,
         leadingWidth: 30,
         title: GestureDetector(
@@ -262,7 +263,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             children: [
               CircleAvatar(
                 radius: 18,
-                backgroundColor: const Color(0xFF333333),
+                backgroundColor: AppColors.surface,
                 backgroundImage: widget.otherUser.profilePictureUrl != null
                     ? NetworkImage(widget.otherUser.profilePictureUrl!)
                     : null,
@@ -274,7 +275,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
               Flexible(
                 child: Text(
                   widget.otherUser.username,
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -283,7 +284,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
+            icon: const Icon(Icons.more_vert, color: AppColors.iconAppBar),
             onPressed: _showBlockReportMenu,
           ),
         ],
@@ -297,7 +298,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
                   return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFFF29F05)),
+                    child: CircularProgressIndicator(color: AppColors.primary),
                   );
                 }
 
@@ -308,11 +309,11 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.waving_hand, size: 48, color: Colors.grey[700]),
+                        Icon(Icons.waving_hand, size: 48, color: AppColors.textHint),
                         const SizedBox(height: 12),
                         Text(
                           'Say hello to @${widget.otherUser.username}!',
-                          style: TextStyle(color: Colors.grey[500], fontSize: 16),
+                          style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
                         ),
                       ],
                     ),
@@ -358,7 +359,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 left: 16, right: 16, top: 16,
                 bottom: MediaQuery.of(context).padding.bottom + 16,
               ),
-              color: const Color(0xFF2A2A2A),
+              color: AppColors.surfaceElevated,
               child: const Text(
                 'You cannot reply to this conversation.',
                 style: TextStyle(color: Colors.grey, fontSize: 14),
@@ -371,14 +372,14 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 left: 16, right: 16, top: 16,
                 bottom: MediaQuery.of(context).padding.bottom + 16,
               ),
-              color: const Color(0xFF2A2A2A),
+              color: AppColors.surfaceElevated,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text('You blocked this user. ', style: TextStyle(color: Colors.grey, fontSize: 14)),
                   GestureDetector(
                     onTap: _confirmUnblock,
-                    child: const Text('Unblock', style: TextStyle(color: Color(0xFFF29F05), fontSize: 14, fontWeight: FontWeight.bold)),
+                    child: const Text('Unblock', style: TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -407,7 +408,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFF333333),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
@@ -429,7 +430,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           margin: const EdgeInsets.symmetric(vertical: 3),
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
           decoration: BoxDecoration(
-            color: isMe ? const Color(0xFFF29F05) : const Color(0xFF2A2A2A),
+            color: isMe ? AppColors.chatBubbleSelf : AppColors.chatBubbleOther,
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(16),
               topRight: const Radius.circular(16),
@@ -456,7 +457,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                           if (progress == null) return child;
                           return const SizedBox(
                             width: 220, height: 160,
-                            child: Center(child: CircularProgressIndicator(color: Color(0xFFF29F05), strokeWidth: 2)),
+                            child: Center(child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2)),
                           );
                         },
                       ),
@@ -478,7 +479,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                       Text(
                         msg.text,
                         style: TextStyle(
-                          color: isMe ? Colors.black : Colors.white,
+                          color: isMe ? Colors.black : AppColors.chatTextOther,
                           fontSize: 15,
                         ),
                       ),
@@ -490,7 +491,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                             Text(
                               'edited  ',
                               style: TextStyle(
-                                color: isMe ? Colors.black38 : Colors.grey[600],
+                                color: isMe ? Colors.black38 : AppColors.textSecondary,
                                 fontSize: 10,
                                 fontStyle: FontStyle.italic,
                               ),
@@ -512,7 +513,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
   void _showMessageActions(MessageModel msg, bool isMe) {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF2A2A2A),
+      backgroundColor: AppColors.surfaceElevated,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -524,14 +525,14 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             Container(
               width: 40, height: 4,
               margin: const EdgeInsets.only(top: 12, bottom: 8),
-              decoration: BoxDecoration(color: Colors.grey[600], borderRadius: BorderRadius.circular(2)),
+              decoration: BoxDecoration(color: AppColors.textSecondary, borderRadius: BorderRadius.circular(2)),
             ),
             // Message preview
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF1F1F1F),
+                color: AppColors.background,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
@@ -541,19 +542,19 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 style: const TextStyle(color: Colors.grey, fontSize: 13),
               ),
             ),
-            const Divider(color: Color(0xFF444444), height: 1),
+            const Divider(color: AppColors.surface, height: 1),
             // Copy (always available for text)
             if (!msg.isImage)
               ListTile(
-                leading: const Icon(Icons.copy, color: Colors.white70),
-                title: const Text('Copy', style: TextStyle(color: Colors.white)),
+                leading: const Icon(Icons.copy, color: AppColors.textSecondary),
+                title: const Text('Copy', style: TextStyle(color: AppColors.textPrimary)),
                 onTap: () {
                   Navigator.pop(ctx);
                   Clipboard.setData(ClipboardData(text: msg.text));
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Message copied'),
-                      backgroundColor: Color(0xFF333333),
+                      backgroundColor: AppColors.surface,
                       duration: Duration(seconds: 1),
                     ),
                   );
@@ -562,8 +563,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             // Edit (only for own text messages)
             if (isMe && !msg.isImage)
               ListTile(
-                leading: const Icon(Icons.edit, color: Color(0xFFF29F05)),
-                title: const Text('Edit', style: TextStyle(color: Colors.white)),
+                leading: const Icon(Icons.edit, color: AppColors.primary),
+                title: const Text('Edit', style: TextStyle(color: AppColors.textPrimary)),
                 onTap: () {
                   Navigator.pop(ctx);
                   _showEditDialog(msg);
@@ -583,7 +584,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             if (!isMe)
               ListTile(
                 leading: const Icon(Icons.flag_outlined, color: Colors.orange),
-                title: const Text('Report', style: TextStyle(color: Colors.white)),
+                title: const Text('Report', style: TextStyle(color: AppColors.textPrimary)),
                 onTap: () {
                   Navigator.pop(ctx);
                   _reportMessage(msg);
@@ -601,17 +602,17 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Edit Message', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Edit Message', style: TextStyle(color: AppColors.textPrimary)),
         content: TextField(
           controller: editController,
           autofocus: true,
           maxLines: 5,
           minLines: 1,
-          style: const TextStyle(color: Colors.white, fontSize: 15),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
           decoration: InputDecoration(
             filled: true,
-            fillColor: const Color(0xFF1F1F1F),
+            fillColor: AppColors.background,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -639,7 +640,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                 }
               }
             },
-            child: const Text('Save', style: TextStyle(color: Color(0xFFF29F05), fontWeight: FontWeight.bold)),
+            child: const Text('Save', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -650,8 +651,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Delete Message', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Delete Message', style: TextStyle(color: AppColors.textPrimary)),
         content: const Text(
           'This message will be permanently deleted.',
           style: TextStyle(color: Colors.grey),
@@ -670,7 +671,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Message deleted'),
-                      backgroundColor: Color(0xFF333333),
+                      backgroundColor: AppColors.surface,
                       duration: Duration(seconds: 1),
                     ),
                   );
@@ -695,12 +696,12 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        title: const Text('Report Message', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surfaceElevated,
+        title: const Text('Report Message', style: TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: reasons.map((reason) => ListTile(
-            title: Text(reason, style: const TextStyle(color: Colors.white)),
+            title: Text(reason, style: const TextStyle(color: AppColors.textPrimary)),
             onTap: () async {
               Navigator.pop(ctx);
               await _blockService.reportMessage(
@@ -729,8 +730,8 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
         bottom: MediaQuery.of(context).padding.bottom + 8,
       ),
       decoration: const BoxDecoration(
-        color: Color(0xFF2A2A2A),
-        border: Border(top: BorderSide(color: Color(0xFF333333), width: 0.5)),
+        color: AppColors.surfaceElevated,
+        border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
       ),
       child: Row(
         children: [
@@ -739,7 +740,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
             icon: _isSendingImage
                 ? const SizedBox(
                     width: 20, height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFF29F05)),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
                   )
                 : const Icon(Icons.image, color: Colors.grey),
             onPressed: _isSendingImage ? null : _sendImage,
@@ -748,15 +749,15 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           Expanded(
             child: TextField(
               controller: _messageController,
-              style: const TextStyle(color: Colors.white, fontSize: 15),
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 15),
               maxLines: 4,
               minLines: 1,
               textCapitalization: TextCapitalization.sentences,
               decoration: InputDecoration(
                 hintText: 'Type a message...',
-                hintStyle: TextStyle(color: Colors.grey[600]),
+                hintStyle: TextStyle(color: AppColors.textSecondary),
                 filled: true,
-                fillColor: const Color(0xFF1F1F1F),
+                fillColor: AppColors.background,
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -769,7 +770,7 @@ class _ChatDetailPageState extends State<ChatDetailPage> {
           const SizedBox(width: 4),
           // Send button
           IconButton(
-            icon: const Icon(Icons.send, color: Color(0xFFF29F05)),
+            icon: const Icon(Icons.send, color: AppColors.primary),
             onPressed: _sendMessage,
           ),
         ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../legal/terms_page.dart';
@@ -65,36 +66,36 @@ class _LoginPageState extends State<LoginPage> {
       context: parentContext,
       builder: (dialogContext) {
         return AlertDialog(
-          backgroundColor: const Color(0xFF333333),
-          title: const Text('Reset Password', style: TextStyle(color: Colors.white)),
+          backgroundColor: AppColors.surfaceElevated,
+          title: const Text('Reset Password', style: TextStyle(color: AppColors.textPrimary)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
                 'Enter your email address to receive a password reset link.',
-                style: TextStyle(color: Color(0xFFE0E0E0)),
+                style: TextStyle(color: AppColors.textBody),
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: resetEmailController,
                 decoration: InputDecoration(
                   hintText: 'Email Address',
-                  hintStyle: TextStyle(color: Colors.grey[500]),
-                  prefixIcon: Icon(Icons.email_outlined, color: Colors.grey[400]),
+                  hintStyle: const TextStyle(color: AppColors.textHint),
+                  prefixIcon: const Icon(Icons.email_outlined, color: AppColors.textHint),
                   filled: true,
-                  fillColor: const Color(0xFF2A2A2A),
+                  fillColor: AppColors.inputFill,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF555555)),
+                    borderSide: const BorderSide(color: AppColors.inputBorder),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFFF29F05), width: 1.5),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 ),
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: AppColors.textPrimary),
               ),
             ],
           ),
@@ -121,18 +122,18 @@ class _LoginPageState extends State<LoginPage> {
                     await showDialog(
                       context: parentContext, // Use parent context for success dialog
                       builder: (context) => AlertDialog(
-                        backgroundColor: const Color(0xFF333333),
-                        icon: const Icon(Icons.mark_email_read, size: 48, color: Color(0xFFF29F05)),
-                        title: const Text('Check Your Email', style: TextStyle(color: Colors.white)),
+                        backgroundColor: AppColors.surfaceElevated,
+                        icon: const Icon(Icons.mark_email_read, size: 48, color: AppColors.primary),
+                        title: const Text('Check Your Email', style: TextStyle(color: AppColors.textPrimary)),
                         content: Text(
                           'We have sent a password reset link to $email.\n\nPlease check your inbox and spam folder.',
-                          style: const TextStyle(color: Color(0xFFE0E0E0)),
+                          style: const TextStyle(color: AppColors.textBody),
                           textAlign: TextAlign.center,
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text('OK', style: TextStyle(color: Color(0xFFF29F05))),
+                            child: const Text('OK', style: TextStyle(color: AppColors.primary)),
                           ),
                         ],
                       ),
@@ -149,7 +150,7 @@ class _LoginPageState extends State<LoginPage> {
                   }
                 }
               },
-              child: const Text('Send Link', style: TextStyle(color: Color(0xFFF29F05))),
+              child: const Text('Send Link', style: TextStyle(color: AppColors.primary)),
             ),
           ],
         );
@@ -309,12 +310,12 @@ class _LoginPageState extends State<LoginPage> {
                   child: Text.rich(
                     TextSpan(
                       text: 'By signing in you agree to our ',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                       children: const [
                         TextSpan(
                           text: 'Terms of Use (EULA)',
                           style: TextStyle(
-                            color: Color(0xFFF29F05),
+                            color: AppColors.primary,
                             decoration: TextDecoration.underline,
                           ),
                         ),
