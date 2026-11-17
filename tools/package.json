@@ -1,0 +1,10 @@
+{
+  "name": "hhf-social-admin-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Admin moderation and account takedown utilities for HHF Social (hhf-social)",
+  "scripts": {
+    "delete-user:dry-run": "node admin_delete_user.js --dry-run",
+    "delete-user:execute": "node admin_delete_user.js --execute"
+  }
+}

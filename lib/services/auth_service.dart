@@ -192,23 +192,44 @@ class AuthService {
       LoggerService.logError('Delete: failed to query chats', e, st);
     }
 
-    // 6. Delete notifications
+    // 6. Delete notifications (both received and sent by this user)
     try {
-      final notifs = await _firestore
+      final receivedNotifs = await _firestore
           .collection('notifications')
           .where('recipientUid', isEqualTo: uid)
           .get();
-      LoggerService.logInfo('Delete: found ${notifs.docs.length} notifications to delete');
-      for (final doc in notifs.docs) { await doc.reference.delete(); }
+      LoggerService.logInfo('Delete: found ${receivedNotifs.docs.length} received notifications to delete');
+      for (final doc in receivedNotifs.docs) { await doc.reference.delete(); }
+
+      final sentNotifs = await _firestore
+          .collection('notifications')
+          .where('senderUid', isEqualTo: uid)
+          .get();
+      LoggerService.logInfo('Delete: found ${sentNotifs.docs.length} sent notifications to delete');
+      for (final doc in sentNotifs.docs) { await doc.reference.delete(); }
     } catch (e, st) {
       LoggerService.logError('Delete: failed to delete notifications', e, st);
     }
 
-    // 7. Delete follow relationships
+    // 7. Delete follow relationships & reconcile counterpart counters
     try {
       final followers = await _firestore
           .collection('users').doc(uid).collection('followers').get();
-      for (final doc in followers.docs) { await doc.reference.delete(); }
+      for (final doc in followers.docs) {
+        final followerUid = doc.id;
+        try {
+          await _firestore
+              .collection('users')
+              .doc(followerUid)
+              .collection('following')
+              .doc(uid)
+              .delete();
+          await _firestore.collection('users').doc(followerUid).update({
+            'followingCount': FieldValue.increment(-1),
+          });
+        } catch (_) {}
+        await doc.reference.delete();
+      }
     } catch (e, st) {
       LoggerService.logError('Delete: failed to delete followers', e, st);
     }
@@ -216,18 +237,35 @@ class AuthService {
     try {
       final following = await _firestore
           .collection('users').doc(uid).collection('following').get();
-      for (final doc in following.docs) { await doc.reference.delete(); }
+      for (final doc in following.docs) {
+        final followedUid = doc.id;
+        try {
+          await _firestore
+              .collection('users')
+              .doc(followedUid)
+              .collection('followers')
+              .doc(uid)
+              .delete();
+          await _firestore.collection('users').doc(followedUid).update({
+            'followersCount': FieldValue.increment(-1),
+          });
+        } catch (_) {}
+        await doc.reference.delete();
+      }
     } catch (e, st) {
       LoggerService.logError('Delete: failed to delete following', e, st);
     }
 
-    // 8. Delete blocked users
+    // 8. Delete blocked users & hidden posts
     try {
       final blocked = await _firestore
           .collection('users').doc(uid).collection('blockedUsers').get();
       for (final doc in blocked.docs) { await doc.reference.delete(); }
+      final hidden = await _firestore
+          .collection('users').doc(uid).collection('hiddenPosts').get();
+      for (final doc in hidden.docs) { await doc.reference.delete(); }
     } catch (e, st) {
-      LoggerService.logError('Delete: failed to delete blocked users', e, st);
+      LoggerService.logError('Delete: failed to delete blocked/hidden subcollections', e, st);
     }
 
     // 9. Delete username reservation

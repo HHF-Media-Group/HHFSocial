@@ -160,6 +160,9 @@ class FeedPageState extends State<FeedPage> {
     final users = await _databaseService.getUsersByIds(uniqueUids);
     final userMap = {for (var u in users) u.uid: u};
 
+    // Exclude orphaned posts whose author account has been deleted
+    posts = posts.where((p) => userMap.containsKey(p.uid)).toList();
+
     final postIds = posts.map((p) => p.postId).toList();
     final likedMap = await _likeService.batchCheckLikes(_currentUid!, postIds);
 

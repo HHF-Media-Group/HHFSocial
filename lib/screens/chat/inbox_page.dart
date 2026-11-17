@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../models/chat_model.dart';
@@ -408,8 +408,11 @@ class _ChatTileState extends State<_ChatTile> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading || _otherUser == null) {
+    if (_isLoading) {
       return _buildTileShimmer();
+    }
+    if (_otherUser == null) {
+      return const SizedBox.shrink();
     }
 
     final unread = widget.chat.unreadFor(widget.currentUid);

@@ -1,3 +1,5 @@
+import 'content_filter.dart';
+
 /// Utility class for form field validation
 /// Provides world-class validation with clear, user-friendly error messages
 class Validators {
@@ -99,6 +101,10 @@ class Validators {
     if (trimmed.contains('..')) {
       return 'Username cannot contain consecutive periods';
     }
+
+    if (ContentFilter.containsObjectionableUsername(trimmed)) {
+      return 'This username violates our community guidelines';
+    }
     
     return null;
   }
@@ -112,6 +118,10 @@ class Validators {
     
     if (value.trim().length < 2) {
       return 'Please enter a valid name';
+    }
+
+    if (ContentFilter.containsObjectionableContent(value)) {
+      return 'This name violates our community guidelines';
     }
     
     return null;
@@ -138,6 +148,10 @@ class Validators {
     
     if (value.length > 150) {
       return 'Bio must be 150 characters or less';
+    }
+
+    if (ContentFilter.containsObjectionableContent(value)) {
+      return 'Bio contains language that violates our community guidelines';
     }
     
     return null;
